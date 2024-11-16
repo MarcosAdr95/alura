@@ -1,0 +1,14 @@
+/home/marcos/workspace/pessoal/alura/bin/Debug/net7.0/alura
+/home/marcos/workspace/pessoal/alura/bin/Debug/net7.0/alura.deps.json
+/home/marcos/workspace/pessoal/alura/bin/Debug/net7.0/alura.runtimeconfig.json
+/home/marcos/workspace/pessoal/alura/bin/Debug/net7.0/alura.dll
+/home/marcos/workspace/pessoal/alura/bin/Debug/net7.0/alura.pdb
+/home/marcos/workspace/pessoal/alura/obj/Debug/net7.0/alura.GeneratedMSBuildEditorConfig.editorconfig
+/home/marcos/workspace/pessoal/alura/obj/Debug/net7.0/alura.AssemblyInfoInputs.cache
+/home/marcos/workspace/pessoal/alura/obj/Debug/net7.0/alura.AssemblyInfo.cs
+/home/marcos/workspace/pessoal/alura/obj/Debug/net7.0/alura.csproj.CoreCompileInputs.cache
+/home/marcos/workspace/pessoal/alura/obj/Debug/net7.0/alura.dll
+/home/marcos/workspace/pessoal/alura/obj/Debug/net7.0/refint/alura.dll
+/home/marcos/workspace/pessoal/alura/obj/Debug/net7.0/alura.pdb
+/home/marcos/workspace/pessoal/alura/obj/Debug/net7.0/alura.genruntimeconfig.cache
+/home/marcos/workspace/pessoal/alura/obj/Debug/net7.0/ref/alura.dll
