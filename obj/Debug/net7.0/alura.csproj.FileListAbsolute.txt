@@ -12,3 +12,4 @@
 /home/marcos/workspace/pessoal/alura/obj/Debug/net7.0/alura.pdb
 /home/marcos/workspace/pessoal/alura/obj/Debug/net7.0/alura.genruntimeconfig.cache
 /home/marcos/workspace/pessoal/alura/obj/Debug/net7.0/ref/alura.dll
+/home/marcos/workspace/pessoal/alura/obj/Debug/net7.0/alura.sourcelink.json
