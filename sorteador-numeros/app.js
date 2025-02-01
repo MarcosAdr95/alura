@@ -21,11 +21,20 @@ function habilitarReiniciar() {
 }
 
 function sortear() {
-    for(let i = 0; i < quantidade.value; i++) {
-        let n = numeroAleatorio(Number(de.value), Number(ate.value));
+    const loop = Number(quantidade.value);
+    const min = Number(de.value);
+    const max = Number(ate.value);
+
+    if(loop > (max - min)) {
+        alert('A quantidade é maior do que a diferença entre os números de inicio e o fim');
+        return;
+    }
+
+    for(let i = 0; i < loop; i++) {
+        let n = numeroAleatorio(min, max);
 
         while(sorteados.includes(n)) {
-            n = numeroAleatorio(Number(de.value), Number(ate.value));
+            n = numeroAleatorio(min, max);
         }
         
         sorteados.push(n);
