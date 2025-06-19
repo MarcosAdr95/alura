@@ -28,4 +28,4 @@ Construído com base na plataforma Wordpress + Guttenberg e conteúdos do parcei
 - Inicie ou reinicie seu apache + mysql
 - No mysql criar a tabela `wp_alura_001`
 - Em seguida importar o dump do mysql, localizado na raiz do repositório `./dump/wp_alura_001.sql`
-- Acessar a url `https://alura.test/` no navegador
+- Acessar a url `https://alura.test/` e `https://alura.test/wp-admin` no navegador
