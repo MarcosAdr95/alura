@@ -1,6 +1,8 @@
 # Cookin'UP
 
-Um site de receitas com colunistas, notícias, receitas, vídeos e mais. Construído com base na plataforma WordPress + Gutterberg
+Cookin'UP é um site de receitas que tem como objetivo levar as pessoas uma forma simples e prática de cozinhar com dicas, notícias e receitas simples e saborosas.
+
+Construído com base na plataforma Wordpress + Guttenberg e conteúdos do parceiro "Tudo Gostoso"
 
 ![](https://alura.test/wp-content/uploads/2025/06/Screenshot-2025-06-18-215503.png)
 
