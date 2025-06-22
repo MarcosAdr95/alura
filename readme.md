@@ -1,3 +1,11 @@
+# ToDo
+
+- Breadcrumb
+- Configurar módulo de noticias na home
+- configurar pagina dos posts
+
+---
+
 # Cookin'UP
 
 Cookin'UP é um site de receitas que tem como objetivo levar as pessoas uma forma simples e prática de cozinhar com dicas, notícias e receitas simples e saborosas.
