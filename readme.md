@@ -2,10 +2,13 @@
 
 - Breadcrumb
 - Configurar módulo de noticias na home
+- configurar footer
 - configurar pagina dos posts
+- [Layout's](https://www.figma.com/design/akTTLK7znjqgUXr9k8eD7P/Identidade-Visual-%7C-Cookin-UP--Community-?node-id=0-1&p=f&t=QIGXEAlnhkU45jkn-0)
+- configurar envio de newsletter + criacao de newsletter
 - configurar api de tradução de conteudos (plugin loco translate)
-- [Layout's](https://www.figma.com/design/akTTLK7znjqgUXr9k8eD7P/Identidade-Visual-%7C-Cookin-UP--Community-?node-id=0-1&p=f&t=kWpwcBS6qAvT3ph3-0)
 - criar um robo que preenche categorias, noticias, receitas, ...
+  - https://developer.wordpress.org/rest-api/using-the-rest-api/authentication/
 
 ---
 
