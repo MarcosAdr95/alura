@@ -5,6 +5,8 @@
 - configurar footer
 - configurar pagina dos posts
 - authors bug
+- publicidades
+- plugin de redes sociais sidebar (materias, ...)
 - botoóes de compartilhamento rede social (tempalte mat[eria])
 - [Layout's](https://www.figma.com/design/akTTLK7znjqgUXr9k8eD7P/Identidade-Visual-%7C-Cookin-UP--Community-?node-id=0-1&p=f&t=QIGXEAlnhkU45jkn-0)
 - configurar envio de newsletter + criacao de newsletter
