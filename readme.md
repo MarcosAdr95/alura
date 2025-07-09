@@ -1,6 +1,6 @@
 # ToDo
 
-- authors bug
+- author paginas estilizar
 - criar pagina de vídeos
 - Breadcrumb
 - Configurar módulo de noticias na home
