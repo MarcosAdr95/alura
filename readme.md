@@ -1,6 +1,6 @@
 # ToDo
 
-- author paginas estilizar
+- bug template author: "Post not found for the author" -> "Nenhum post foi encontrado"
 - criar pagina de vídeos
 - Breadcrumb
 - Configurar módulo de noticias na home
