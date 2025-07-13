@@ -96,6 +96,9 @@ define( 'WP_DEBUG', false );
 // Enable wordpress file's editor
 define('DISALLOW_FILE_EDIT', true);
 
+// Modo de gravação direta
+define('FS_METHOD', 'direct');
+
 
 /* Add any custom values between this line and the "stop editing" line. */
 
