@@ -99,6 +99,9 @@ define('DISALLOW_FILE_EDIT', true);
 // Modo de gravação direta
 define('FS_METHOD', 'direct');
 
+// only local
+define('ALLOW_UNFILTERED_UPLOADS', true);
+
 
 /* Add any custom values between this line and the "stop editing" line. */
 
