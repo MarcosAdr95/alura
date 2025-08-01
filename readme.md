@@ -1,8 +1,7 @@
 # ToDo
 
-- criar pagina de vídeos
 - Breadcrumb
-- Configurar módulo de noticias na home
+- Módulo de noticias linkar titulo para indice de noticias
 - publicidades
 - plugin de redes sociais sidebar (materias, ...)
 - botoes de compartilhamento rede social (tempalte mat[eria])
@@ -42,7 +41,8 @@ Construído com base na plataforma Wordpress + Guttenberg e conteúdos do parcei
   - Windows: `C:\Windows\System32\drivers\etc\hosts`
   - Linux: `/etc/hosts`
 - No apache configurar o Virtual Host liberando `alura.test` na porta 80 e 443
-- No arquivo `wp-config.php` localizado na raiz do repositório altera as credenciais de acesso ao mysql de acordo com sua instalação local (para DB_NAME definri como `wp_alura_001`)
+- No arquivo vhosts é necessário adicionar o certificado ssl do ambiente local este está criado no folder ssl
+- No arquivo `wp-config.php` localizado na raiz do repositório altera as credenciais de acesso ao mysql de acordo com sua instalação local (para DB_NAME definir como `wp_alura_001`)
 - Inicie ou reinicie seu apache + mysql
 - No mysql criar a tabela `wp_alura_001`
 - Em seguida importar o dump do mysql, localizado na raiz do repositório `./dump/wp_alura_001.sql`
