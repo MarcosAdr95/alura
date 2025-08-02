@@ -1,7 +1,8 @@
 # ToDo
 
-- Breadcrumb
-- Módulo de noticias linkar titulo para indice de noticias
+- post type receitas
+- área de buscas
+- ajustar sidebar de noticias, receitas e videos
 - publicidades
 - plugin de redes sociais sidebar (materias, ...)
 - botoes de compartilhamento rede social (tempalte mat[eria])
