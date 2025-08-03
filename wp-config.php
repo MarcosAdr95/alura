@@ -93,6 +93,11 @@ $table_prefix = 'wp_';
  */
 define( 'WP_DEBUG', false );
 
+// define('WP_DEBUG', true);
+// define('WP_DEBUG_LOG', true);
+// define('WP_DEBUG_DISPLAY', true); // Temporariamente, mostra o erro na tela
+// @ini_set('display_errors', 1);
+
 // Enable wordpress file's editor
 define('DISALLOW_FILE_EDIT', true);
 
@@ -101,6 +106,7 @@ define('FS_METHOD', 'direct');
 
 // only local
 define('ALLOW_UNFILTERED_UPLOADS', true);
+
 
 
 /* Add any custom values between this line and the "stop editing" line. */
