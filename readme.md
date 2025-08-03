@@ -1,7 +1,6 @@
 # ToDo
 
 - publicidades
-- plugin de redes sociais sidebar (materias, ...)
 - botoes de compartilhamento rede social (tempalte mat[eria])
 - configurar envio de newsletter + criacao de newsletter
 - configurar api de tradução de conteudos (plugin loco translate)
