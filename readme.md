@@ -1,17 +1,3 @@
-# ToDo
-
-- publicidades
-- botoes de compartilhamento rede social (tempalte mat[eria])
-- configurar envio de newsletter + criacao de newsletter
-- configurar api de tradução de conteudos (plugin loco translate)
-- criar um robo que preenche categorias, noticias, receitas, ...
-  - https://developer.wordpress.org/rest-api/using-the-rest-api/authentication/
-- medir performance com projetos
-- paginas amp
-- [Layout's](https://www.figma.com/design/akTTLK7znjqgUXr9k8eD7P/Identidade-Visual-%7C-Cookin-UP--Community-?node-id=0-1&p=f&t=QIGXEAlnhkU45jkn-0)
-
----
-
 # Cookin'UP
 
 Cookin'UP é um site de receitas que tem como objetivo levar as pessoas uma forma simples e prática de cozinhar com dicas, notícias e receitas simples e saborosas.
