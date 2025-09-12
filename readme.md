@@ -19,14 +19,19 @@ Construído com base na plataforma Wordpress + Guttenberg e conteúdos do parcei
 
 ## Instalação e execução
 
-- Baixar o repositório dentro da área de projetos do seu apache
-- Adicionar no host local o valor `127.0.0.1 alura.test`
-  - Windows: `C:\Windows\System32\drivers\etc\hosts`
-  - Linux: `/etc/hosts`
-- No apache configurar o Virtual Host liberando `alura.test` na porta 80 e 443
-- No arquivo vhosts é necessário adicionar o certificado ssl do ambiente local este está criado no folder ssl
-- No arquivo `wp-config.php` localizado na raiz do repositório altera as credenciais de acesso ao mysql de acordo com sua instalação local (para DB_NAME definir como `wp_alura_001`)
-- Inicie ou reinicie seu apache + mysql
-- No mysql criar a tabela `wp_alura_001`
-- Em seguida importar o dump do mysql, localizado na raiz do repositório `./dump/wp_alura_001.sql`
-- Acessar a url `https://alura.test/` e `https://alura.test/wp-admin` no navegador
+### Ambiente XAMPP
+
+- Adicionar a config no arquivo de host da máquina `127.0.0.1 www.cookinup.com.br`
+- Baixar o repositório do [GitHub](git@github.com:MarcosAdr95/alura.git)
+- No apache configurar o Virtual Host liberando `www.cookinup.com.br` na porta 80 e 443
+  - Ao configurar o httpd-vhosts.config no bloco 443 habilitar o ssl e adicionar o certificado ssl presente na pasta "ssl"
+  - No httpd-vhosts.config apontar o projeto para o respositório baixado
+- No mysql criar a tabela **cookin-up** `caso seja ambiente local`
+  - Em seguida importar o arquivo `cookin_up.sql` localizado na raiz do repositório
+- No arquivo `wp-config.php` localizado na raiz do repositório altera as credenciais de acesso ao mysql de acordo com sua instalação local/produção
+- Inicie seu apache + mysql
+- Acessar a url `https://www.cookinup.com.br` e `https://www.cookinup.com.br/wp-admin` no navegador
+
+### Ambiente Docker
+
+- ???
