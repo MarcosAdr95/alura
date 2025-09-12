@@ -1,0 +1,9 @@
+volumes-mysql
+volumes-wp
+letsencrypt
+*.sock
+.dockerignore
+.gitignore
+cookin_up.sql
+docker-compose.yml
+Dockerfile
