@@ -157,7 +157,7 @@ class Query
             return $where;
         }
 
-        $author_name = !empty($query->query_vars['ppma_author']) 
+        $author_name = !empty($query->query_vars['ppma_author'])
             ? sanitize_title($query->get('ppma_author')) : sanitize_title($query->get('author_name'));
 
         if (empty($author_name)) {
@@ -176,6 +176,17 @@ class Query
             $term = Author::get_by_user_id($query->queried_object_id);
         } else {
             $term = $query->queried_object;
+        }
+
+        // Polylang support: ensure term is in current language
+        if (function_exists('pll_get_term') && function_exists('pll_current_language')) {
+            $translated_term_id = pll_get_term($term->term_id, pll_current_language());
+            if ($translated_term_id && $translated_term_id != $term->term_id) {
+                $translated_term = get_term($translated_term_id, 'author');
+                if ($translated_term && !is_wp_error($translated_term)) {
+                    $term = $translated_term;
+                }
+            }
         }
 
         if (empty($term)) {
@@ -205,7 +216,20 @@ class Query
             && isset($current_author->term_id)
             && (int)$current_author->term_id > 0
         ) {
-            $current_user_term_id = $current_author->term_id;
+            $current_user_base_term_id = $current_author->term_id;
+
+            // Apply language translation for current user term
+            if (function_exists('pll_current_language') && function_exists('pll_get_term')) {
+                $current_language = pll_current_language();
+                if ($current_language) {
+                    $translated_current_term = pll_get_term($current_user_base_term_id, $current_language);
+                    $current_user_term_id = $translated_current_term ? $translated_current_term : $current_user_base_term_id;
+                } else {
+                    $current_user_term_id = $current_user_base_term_id;
+                }
+            } else {
+                $current_user_term_id = $current_user_base_term_id;
+            }
         } else {
             $current_user_term_id = 0;
         }
@@ -225,7 +249,7 @@ class Query
             $where,
             -1
         );
-        
+
         // Add post type only if it's not an admin main query
         if ( ! ( is_admin() && $query->is_main_query() ) ) {
             $where = static::add_custom_post_types_to_query($where);
@@ -285,7 +309,7 @@ class Query
             return $groupby;
         }
 
-        $having  = 'MAX( IF ( ppmaq2.taxonomy = "author", IF ( ' . $query->authors_having_terms . ',2,1 ),0 ) ) <> 1 ';
+        $having  = 'MAX( IF ( ppmaq2.taxonomy = \'author\', IF ( ' . $query->authors_having_terms . ',2,1 ),0 ) ) <> 1 ';
         $groupby = $wpdb->posts . '.ID HAVING ' . $having;
 
         return $groupby;

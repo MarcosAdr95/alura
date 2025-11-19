@@ -79,9 +79,42 @@ if (!function_exists('get_post_authors')) {
             return [];
         }
 
+        $post = get_post($postId);
+
+        $authors_cache_key = 'authors_' . $postId;
+        if (
+            $post &&
+            ! is_wp_error($post) &&
+            is_object($post) &&
+            ! empty($post->post_author) &&
+            ! Utils::is_post_type_enabled($post->post_type)
+        ) {
+            // this post type is not enabled for Authors
+
+            $author = Author::get_by_user_id($post->post_author);
+
+            if (empty($author) || is_wp_error($author)) {
+                $postTypes = Util::get_selected_post_types();
+
+                if (in_array($post->post_type, $postTypes)) {
+                    $author = Author::create_from_user($post->post_author);
+                    $authorsInstances = [$author];
+                } else {
+                    return [get_userdata($post->post_author)];
+                }
+            } else {
+                $authorsInstances = [$author];
+            }
+
+            if (!empty($authorsInstances) && $updateAuthors) {
+                Utils::set_post_authors($postId, $authorsInstances);
+            }
+            return $authorsInstances;
+        }
+
         $authorsInstances = false;
         if (!$ignoreCache) {
-            $authorsInstances = wp_cache_get($postId, 'get_post_authors:authors');
+            $authorsInstances = wp_cache_get($authors_cache_key, 'get_post_authors:authors');
         }
 
         if (false !== $authorsInstances) {
@@ -124,8 +157,6 @@ if (!function_exists('get_post_authors')) {
             }
         } else {
             // Fallback to the post author, fixing the post and author relationship
-            $post = get_post($postId);
-
             // TODO: Should we really just fail silently? Check WP_DEBUG and add a log error message.
             if (empty($post) || is_wp_error($post) || !is_object($post) || empty($post->post_author)) {
                 return [];
@@ -151,7 +182,7 @@ if (!function_exists('get_post_authors')) {
             }
         }
 
-        wp_cache_set($postId, $authorsInstances, 'get_post_authors:authors');
+        wp_cache_set($authors_cache_key, $authorsInstances, 'get_post_authors:authors');
 
         return (array)$authorsInstances;
     }
@@ -183,7 +214,14 @@ if (!function_exists('ppma_post_authors_categorized')) {
             return [];
         }
 
-        // TODO: Cache the result
+        $cache_key = 'categorized_authors_' . $postId . '_' . md5(serialize($category_slugs));
+
+        $cached_result = wp_cache_get($cache_key, 'ppma_categorized_authors');
+
+        if (false !== $cached_result) {
+            return $cached_result;
+        }
+
         $authors = get_post_authors($postId, true);
         $categorized_authors = [];
         $author_relations = get_ppma_author_relations(['post_id' => $postId, 'slug' => $category_slugs]);
@@ -206,8 +244,10 @@ if (!function_exists('ppma_post_authors_categorized')) {
             $category_slugs = array_values($category_slugs);
             $filtered_authors     = array_intersect_key($categorized_authors, array_flip($category_slugs));
             $categorized_authors = array_intersect_key($categorized_authors, $filtered_authors);
-    
+
         }
+
+        wp_cache_set($cache_key, $categorized_authors, 'ppma_categorized_authors');
 
         return $categorized_authors;
     }
@@ -258,7 +298,8 @@ if (!function_exists('multiple_authors_get_author_recent_posts')) {
         $id_only = true,
         $limit = 5,
         $orderby = 'post_date',
-        $order = 'DESC'
+        $order = 'DESC',
+        $post_types = []
     ) {
         if (!$author) {
             $author = Author::get_by_user_id(get_current_user_id());
@@ -280,6 +321,10 @@ if (!function_exists('multiple_authors_get_author_recent_posts')) {
                 ]
             ]
         ];
+
+        if (! empty($post_types)) {
+            $author_recent_args['post_type'] = $post_types;
+        }
 
         if ($id_only) {
             $author_recent_args['fields'] = 'ids';
@@ -394,6 +439,48 @@ if (!function_exists('publishpress_authors_get_all_authors')) {
             $user_roles = $other_roles;
         }
 
+        // exclude roles
+        if (isset($instance['exclude_roles']) && !empty($instance['exclude_roles'])) {
+            $exclude_user_roles = explode(',', $instance['exclude_roles']);
+        } else {
+            $exclude_user_roles = [];
+        }
+
+        // exclude author category ids
+        if (isset($instance['exclude_category_id']) && !empty($instance['exclude_category_id'])) {
+            $exclude_category_ids = array_map('intval', explode(',', $instance['exclude_category_id']));
+        } else {
+            $exclude_category_ids = [];
+        }
+
+        $exclude_guests_only = false;
+        $exclude_users_only = false;
+        $exclude_exclude_real_user = false;
+        $exclude_exclude_guest_user = false;
+
+        if (isset($instance['exclude_authors']) && !empty($instance['exclude_authors'])) {
+            $exclude_author_types = explode(',', $instance['exclude_authors']);
+            if (count($exclude_author_types) < 3) {
+                if (in_array('users', $exclude_author_types) && in_array('guests_users', $exclude_author_types)) {
+                    $exclude_user_roles = array_merge($exclude_user_roles, array_keys(get_ppma_get_all_user_roles()));
+                } else if (in_array('users', $exclude_author_types) && in_array('guests', $exclude_author_types)) {
+                    $exclude_exclude_guest_user = true;
+                } else if (in_array('guests_users', $exclude_author_types) && in_array('guests', $exclude_author_types)) {
+                    $exclude_exclude_real_user = true;
+                } else if (in_array('users', $exclude_author_types)) {
+                    $exclude_users_only = true;
+                } else if (in_array('guests_users', $exclude_author_types)) {
+                    $exclude_user_roles[] = 'ppma_guest_author';
+                } else if (in_array('guests', $exclude_author_types)) {
+                    $exclude_guests_only = true;
+                }
+            }
+        }
+
+        if ($exclude_users_only) {
+            $exclude_user_roles = $other_roles;
+        }
+
         //add sort option
         if (!isset($args['order']) && isset($instance['order'])) {
             $args['order'] = $instance['order'];
@@ -470,7 +557,8 @@ if (!function_exists('publishpress_authors_get_all_authors')) {
             $meta_order = false;
         }
 
-        if (true === $args['hide_empty'] || $search_text || $meta_order || $last_article_date || !empty($user_roles) || $guests_only || $exclude_real_user || $exclude_guest_user) {
+        if (true === $args['hide_empty'] || $search_text || $meta_order || $last_article_date || !empty($user_roles) || $guests_only || $exclude_real_user || $exclude_guest_user || !empty($exclude_user_roles) || $exclude_guests_only || $exclude_exclude_real_user || $exclude_exclude_guest_user || !empty($exclude_category_ids)) {
+
             $postTypes = Utils::get_enabled_post_types();
             $postTypes = array_map(function($item) {
                 return '"' . $item . '"';
@@ -500,7 +588,20 @@ if (!function_exists('publishpress_authors_get_all_authors')) {
             if (!empty($category_ids)) {
                 $term_query .= "LEFT JOIN {$wpdb->termmeta} AS tm_cat ON (t.term_id = tm_cat.term_id AND tm_cat.meta_key = 'author_category') ";
             }
-            
+
+            if (!empty($exclude_user_roles) || $exclude_guests_only || $exclude_exclude_real_user || $exclude_exclude_guest_user) {
+                $term_query .= "LEFT JOIN {$wpdb->termmeta} tm3 ON t.term_id = tm3.term_id AND tm3.meta_key = 'user_id' ";
+            }
+
+            if (!empty($exclude_user_roles) || $exclude_exclude_real_user || $exclude_exclude_guest_user) {
+                $term_query .= "LEFT JOIN {$wpdb->users} u2 ON u2.ID = tm3.meta_value ";
+                $term_query .= "LEFT JOIN {$wpdb->usermeta} um2 ON u2.ID = um2.user_id ";
+            }
+
+            if (!empty($exclude_category_ids)) {
+                $term_query .= "LEFT JOIN {$wpdb->termmeta} AS tm_exclude_cat ON (t.term_id = tm_exclude_cat.term_id AND tm_exclude_cat.meta_key = 'author_category') ";
+            }
+
             $term_query .= "WHERE tt.taxonomy = 'author' ";
 
             if (!empty($category_ids)) {
@@ -548,6 +649,67 @@ if (!function_exists('publishpress_authors_get_all_authors')) {
                         tm.meta_key = 'user_id'
                         AND ($role_conditions_string)
                     )
+                ) ";
+            }
+
+            if (!empty($exclude_category_ids)) {
+                $term_query .= "AND (tm_exclude_cat.meta_value IS NULL OR tm_exclude_cat.meta_value NOT IN (" . implode(',', $exclude_category_ids) . ")) ";
+            }
+
+            if ($exclude_guests_only) {
+                $term_query .= "AND NOT (tm3.meta_value IS NULL OR tm3.meta_value = '' OR tm3.meta_value = 0) ";
+            }
+
+            if ($exclude_exclude_real_user) {
+                $role_condition = '%"ppma_guest_author"%';
+                $term_query .= "AND NOT (
+                    tm3.meta_key IS NULL
+                    OR tm3.meta_value IS NULL
+                    OR tm3.meta_value = ''
+                    OR tm3.meta_value = '0'
+                    OR (
+                        tm3.meta_key = 'user_id'
+                        AND um2.meta_value LIKE '{$role_condition}'
+                    )
+                ) ";
+            }
+
+            if ($exclude_exclude_guest_user) {
+                $role_conditions = [];
+                foreach ($other_roles as $role) {
+                    $role_conditions[] = $wpdb->prepare("um2.meta_value LIKE %s", '%"' . $wpdb->esc_like($role) . '"%');
+                }
+                $role_conditions_string = implode(' OR ', $role_conditions);
+                $term_query .= "AND NOT (
+                    tm3.meta_key IS NULL
+                    OR tm3.meta_value IS NULL
+                    OR tm3.meta_value = ''
+                    OR tm3.meta_value = '0'
+                    OR (
+                        tm3.meta_key = 'user_id'
+                        AND ($role_conditions_string)
+                    )
+                ) ";
+            }
+
+            if (!empty($exclude_user_roles)) {
+                $exclude_role_conditions = [];
+                foreach ($exclude_user_roles as $role) {
+                    $exclude_role_conditions[] = $wpdb->prepare("um_exclude.meta_value LIKE %s", '%"' . $wpdb->esc_like($role) . '"%');
+                }
+                $exclude_role_conditions_string = implode(' OR ', $exclude_role_conditions);
+
+                $term_query .= "AND t.term_id NOT IN (
+                    SELECT DISTINCT t_exclude.term_id
+                    FROM {$wpdb->terms} t_exclude
+                    INNER JOIN {$wpdb->term_taxonomy} tt_exclude ON tt_exclude.term_id = t_exclude.term_id
+                    LEFT JOIN {$wpdb->termmeta} tm_exclude ON tm_exclude.term_id = t_exclude.term_id
+                    LEFT JOIN {$wpdb->users} u_exclude ON u_exclude.ID = tm_exclude.meta_value
+                    LEFT JOIN {$wpdb->usermeta} um_exclude ON u_exclude.ID = um_exclude.user_id
+                    WHERE tt_exclude.taxonomy = 'author'
+                    AND tm_exclude.meta_key = 'user_id'
+                    AND um_exclude.meta_key = '{$wpdb->prefix}capabilities'
+                    AND ($exclude_role_conditions_string)
                 ) ";
             }
 
@@ -654,7 +816,12 @@ if (!function_exists('publishpress_authors_get_all_authors')) {
                 //group authors by first letter of their name
                 $group_by     = isset($instance['group_by']) ? $instance['group_by'] : 'display_name';
                 $grouped_name = (!empty($author->$group_by)) ? $author->$group_by : $author->display_name;
-                $authors[strtolower($grouped_name[0])][]  = $author;
+
+                $first_char = mb_substr($grouped_name, 0, 1, 'UTF-8');
+                $normalized_char = publishpress_authors_normalize_character($first_char);
+
+                $authors[strtolower($normalized_char)][] = $author;
+
             } elseif ($result_type === 'recent') {
                 //query recent post by authors
                 $author_recent_posts = multiple_authors_get_author_recent_posts($author);
@@ -738,6 +905,103 @@ if (!function_exists('publishpress_authors_get_all_authors')) {
     }
 }
 
+
+if (!function_exists('publishpress_authors_get_character_mapping')) {
+    /**
+     * Get comprehensive character mapping for alphabetical indexing
+     * Handles Icelandic, European, and other extended characters
+     */
+    function publishpress_authors_get_character_mapping() {
+        $character_map = [
+            // Icelandic characters
+            'Á' => 'A', 'á' => 'A',
+            'Í' => 'I', 'í' => 'I',
+            'Ó' => 'O', 'ó' => 'O',
+            'Ú' => 'U', 'ú' => 'U',
+            'Ý' => 'Y', 'ý' => 'Y',
+            'Æ' => 'A', 'æ' => 'A',
+            'Þ' => 'T', 'þ' => 'T',
+            'Ð' => 'D', 'ð' => 'D',
+
+            // French characters
+            'À' => 'A', 'à' => 'A', 'Â' => 'A', 'â' => 'A', 'Ä' => 'A', 'ä' => 'A',
+            'È' => 'E', 'è' => 'E', 'É' => 'E', 'é' => 'E', 'Ê' => 'E', 'ê' => 'E', 'Ë' => 'E', 'ë' => 'E',
+            'Ì' => 'I', 'ì' => 'I', 'Î' => 'I', 'î' => 'I', 'Ï' => 'I', 'ï' => 'I',
+            'Ò' => 'O', 'ò' => 'O', 'Ô' => 'O', 'ô' => 'O', 'Ö' => 'O', 'ö' => 'O',
+            'Ù' => 'U', 'ù' => 'U', 'Û' => 'U', 'û' => 'U', 'Ü' => 'U', 'ü' => 'U',
+            'Ç' => 'C', 'ç' => 'C',
+
+            // German characters
+            'ß' => 'S',
+
+            // Spanish characters
+            'Ñ' => 'N', 'ñ' => 'N',
+
+            // Other European characters
+            'Å' => 'A', 'å' => 'A',
+            'Ø' => 'O', 'ø' => 'O',
+            'Œ' => 'O', 'œ' => 'O',
+        ];
+
+        return apply_filters('publishpress_authors_index_character_mapping', $character_map);
+    }
+}
+
+if (!function_exists('publishpress_authors_normalize_character')) {
+    /**
+     * Normalize character for alphabetical indexing
+     */
+    function publishpress_authors_normalize_character($char) {
+        $character_map = publishpress_authors_get_character_mapping();
+        return isset($character_map[$char]) ? $character_map[$char] : strtoupper($char);
+    }
+}
+
+if (!function_exists('publishpress_authors_get_index_titles')) {
+    /**
+     * Get index title mapping for different languages
+     */
+    function publishpress_authors_get_index_titles() {
+        $index_titles = [
+            'A' => 'A', 'B' => 'B', 'C' => 'C', 'D' => 'D', 'E' => 'E',
+            'F' => 'F', 'G' => 'G', 'H' => 'H', 'I' => 'I', 'J' => 'J',
+            'K' => 'K', 'L' => 'L', 'M' => 'M', 'N' => 'N', 'O' => 'O',
+            'P' => 'P', 'Q' => 'Q', 'R' => 'R', 'S' => 'S', 'T' => 'T',
+            'U' => 'U', 'V' => 'V', 'W' => 'W', 'X' => 'X', 'Y' => 'Y',
+            'Z' => 'Z'
+        ];
+
+        /**
+         * Filter the index title mapping for different languages
+         *
+         * Example for Icelandic:
+         * $icelandic_titles = [
+         *     'A' => 'A/Á', 'B' => 'B', 'C' => 'C', 'D' => 'D/Ð',
+         *     'E' => 'E/É', 'F' => 'F', 'G' => 'G', 'H' => 'H',
+         *     'I' => 'I/Í', 'J' => 'J', 'K' => 'K', 'L' => 'L',
+         *     'M' => 'M', 'N' => 'N', 'O' => 'O/Ó', 'P' => 'P',
+         *     'Q' => 'Q', 'R' => 'R', 'S' => 'S', 'T' => 'T/Þ',
+         *     'U' => 'U/Ú', 'V' => 'V', 'W' => 'W', 'X' => 'X',
+         *     'Y' => 'Y/Ý', 'Z' => 'Z', 'AE' => 'Æ'
+         * ];
+         *
+         * @param array $index_titles The default index title mapping
+         */
+        return apply_filters('publishpress_authors_index_titles', $index_titles);
+    }
+}
+
+if (!function_exists('publishpress_authors_get_index_display_title')) {
+    /**
+     * Get display title for index character
+     */
+    function publishpress_authors_get_index_display_title($normalized_char) {
+        $index_titles = publishpress_authors_get_index_titles();
+
+        return isset($index_titles[strtoupper($normalized_char)]) ? $index_titles[strtoupper($normalized_char)] : $normalized_char;
+    }
+}
+
 if (!function_exists('publishpress_authors_is_author_for_post')) {
     /**
      * Checks to see if the the specified user is author of the current global post or post (if specified)
@@ -777,6 +1041,15 @@ if (!function_exists('publishpress_authors_is_author_for_post')) {
             return false;
         }
 
+        $user_id = is_numeric($user) ? $user : $user->ID;
+        $cache_key = "is_author_{$post_id}_{$user_id}";
+
+        $found = false;
+        $cached_result = wp_cache_get($cache_key, 'publishpress_authors_user_checks', false, $found);
+        if ($found) {
+            return $cached_result;
+        }
+
         $currentPostType = get_post_type($post_id);
         $enabledPostTypes  = Utils::get_enabled_post_types();
 
@@ -789,8 +1062,9 @@ if (!function_exists('publishpress_authors_is_author_for_post')) {
             } else {
                 $userId = $user->ID;
             }
-
-            return (int)$postAuthorId === (int)$userId;
+            $result = (int)$postAuthorId === (int)$userId;
+            wp_cache_set($cache_key, $result, 'publishpress_authors_user_checks');
+            return $result;
         }
 
         if (!isset($postAuthorsCache[$post_id])) {
@@ -822,7 +1096,10 @@ if (!function_exists('publishpress_authors_is_author_for_post')) {
                 $userId = $user->ID;
             }
 
-            return (int)$post_author === (int)$userId;
+            $result = (int)$post_author === (int)$userId;
+            wp_cache_set($cache_key, $result, 'publishpress_authors_user_checks');
+
+            return $result;
         }
 
         foreach ($coauthors as $coauthor) {
@@ -832,11 +1109,18 @@ if (!function_exists('publishpress_authors_is_author_for_post')) {
                 isset($coauthor->term_id) &&
                 $user_term->term_id == $coauthor->term_id
                 ) {
-                return true;
+
+                $result = true;
+                wp_cache_set($cache_key, $result, 'publishpress_authors_user_checks');
+
+                return $result;
             }
         }
 
-        return false;
+        $result = false;
+        wp_cache_set($cache_key, $result, 'publishpress_authors_user_checks');
+
+        return $result;
     }
 }
 
@@ -1501,7 +1785,7 @@ if (!function_exists('get_ppma_author_categories')) {
      * Get author categories
      *
      * @param array $args
-     * 
+     *
      * @return array|integer
      */
     function get_ppma_author_categories($args = []) {
@@ -1519,6 +1803,9 @@ if (!function_exists('get_ppma_author_categories')) {
             'orderby'           => 'category_order',
             'order'             => 'ASC',
             'count_only'        => false,
+            'no_cache'          => false,
+            'post_type'         => [],
+            'post_type_and_empty' => '',
             'meta_query'        => []
         ];
 
@@ -1527,6 +1814,11 @@ if (!function_exists('get_ppma_author_categories')) {
         $table_name      = $wpdb->prefix . 'ppma_author_categories';
         $meta_table_name = $wpdb->prefix . 'ppma_author_categories_meta';
 
+        if (! Utils::isAuthorsProActive()) {
+            // make sure post type query doesn't work even if added to custom query unless pro is active
+            $args['post_type'] = [];
+            $args['post_type_and_empty'] = '';
+        }
 
         $paged           = intval($args['paged']);
         $limit           = intval($args['limit']);
@@ -1538,6 +1830,9 @@ if (!function_exists('get_ppma_author_categories')) {
         $orderby         = sanitize_sql_orderby($args['orderby'] . ' ' . strtoupper($args['order']));
         $category_status = sanitize_text_field($args['category_status']);
         $count_only      = boolval($args['count_only']);
+        $no_cache        = boolval($args['no_cache']);
+        $post_types      = !empty($args['post_types']) && is_array($args['post_types']) ? array_map('sanitize_key', $args['post_types'], ) : [];
+        $post_type_and_empty = !empty($args['post_type_and_empty']) ? sanitize_text_field($args['post_type_and_empty']) : '';
 
         if (empty($orderby)) {
             $orderby = 'category_order ASC';
@@ -1559,34 +1854,88 @@ if (!function_exists('get_ppma_author_categories')) {
         }
 
         $cache_key = 'author_categories_results_' . md5(serialize($args));
-    
+
         $category_results = wp_cache_get($cache_key, 'author_categories_results_cache');
         $single_result = false;
-        if ($category_results === false) {
+        if ($no_cache || $category_results === false) {
             $category_results = [];
             if ($field_search) {
+                // Single result
                 $query = $wpdb->prepare(
-                    "SELECT {$table_name}.*, {$meta_table_name}.meta_key, {$meta_table_name}.meta_value
-                    FROM {$table_name}
-                    LEFT JOIN {$meta_table_name} ON {$table_name}.id = {$meta_table_name}.category_id
+                    "SELECT * FROM {$table_name}
                     WHERE {$table_name}.{$field_search} = %s
                     ORDER BY {$orderby}
                     LIMIT 1",
                     $field_value
                 );
-                $category_results = $wpdb->get_row($query, \ARRAY_A);
+                $category_row = $wpdb->get_row($query, ARRAY_A);
+
+                if ($category_row) {
+                    // Fetch all meta for this ID
+                    $meta_query = $wpdb->prepare(
+                        "SELECT meta_key, meta_value
+                        FROM {$meta_table_name}
+                        WHERE category_id = %d",
+                        $category_row['id']
+                    );
+                    $metas = $wpdb->get_results($meta_query, ARRAY_A);
+
+                    // Merge meta into main row
+                    foreach ($metas as $meta) {
+                        $category_row[$meta['meta_key']] = $meta['meta_value'];
+                    }
+                }
+
+                $category_results = $category_row;
+
                 $single_result = true;
             } else {
+                // Multiple results
 
                 $offset = ($paged - 1) * $limit;
 
                 if ($count_only) {
-                    $query = "SELECT * FROM {$table_name} WHERE 1=1";
+                    $query = "SELECT COUNT(*) FROM {$table_name} WHERE 1=1";
                 } else {
-                    $query = "SELECT {$table_name}.*, {$meta_table_name}.meta_key, {$meta_table_name}.meta_value
-                    FROM {$table_name}
-                    LEFT JOIN {$meta_table_name} ON {$table_name}.id = {$meta_table_name}.category_id
-                    WHERE 1=1";
+                    $query = "SELECT * FROM {$table_name} WHERE 1=1";
+                }
+
+                if (!empty($post_types)) {
+                    $like_conditions = [];
+                    $prepare_values = [];
+
+                    foreach ($post_types as $post_type) {
+                        $like_conditions[] = "meta_value LIKE %s";
+                        $prepare_values[] = '%"' . $wpdb->esc_like($post_type) . '"%';
+                    }
+
+                    $subquery = $wpdb->prepare(
+                        "SELECT DISTINCT category_id
+                        FROM {$meta_table_name}
+                        WHERE meta_key = 'post_types'
+                        AND (" . implode(' OR ', $like_conditions) . ")",
+                        ...$prepare_values
+                    );
+
+                    $query .= " AND {$table_name}.id IN ({$subquery})";
+                } elseif (!empty($post_type_and_empty)) {
+                    $post_type = $post_type_and_empty;
+
+                    $subquery = $wpdb->prepare(
+                        "SELECT DISTINCT category_id
+                        FROM {$meta_table_name}
+                        WHERE meta_key = 'post_types'
+                        AND (meta_value LIKE %s OR meta_value IS NULL OR meta_value = '')",
+                        '%"' . $wpdb->esc_like($post_type) . '"%'
+                    );
+
+                    $query .= " AND ({$table_name}.id IN ({$subquery}) OR {$table_name}.id NOT IN (
+                        SELECT DISTINCT category_id
+                        FROM {$meta_table_name}
+                        WHERE meta_key = 'post_types'
+                        AND meta_value IS NOT NULL
+                        AND meta_value != ''
+                    ))";
                 }
 
                 if (!empty($search)) {
@@ -1604,20 +1953,42 @@ if (!function_exists('get_ppma_author_categories')) {
                         $category_status
                     );
                 }
-        
+
                 if ($count_only) {
-                    $query = str_replace("SELECT *", "SELECT COUNT(*)", $query);
                     return $wpdb->get_var($query);
                 }
-        
-                $query .= $wpdb->prepare(
-                    " ORDER BY {$orderby} LIMIT %d OFFSET %d",
-                    $limit,
-                    $offset
-                );
 
-                
-                $category_results = $wpdb->get_results($query, \ARRAY_A);
+                $query .= " ORDER BY {$orderby} LIMIT %d OFFSET %d";
+                $query = $wpdb->prepare($query, $limit, $offset);
+
+                $categories = $wpdb->get_results($query, ARRAY_A);
+                if (!$categories) {
+                    return [];
+                }
+
+                // Query metas
+                $ids = wp_list_pluck($categories, 'id');
+                $placeholders = implode(',', array_fill(0, count($ids), '%d'));
+                $meta_query = $wpdb->prepare(
+                    "SELECT category_id, meta_key, meta_value
+                    FROM {$meta_table_name}
+                    WHERE category_id IN ($placeholders)",
+                    ...$ids
+                );
+                $metas = $wpdb->get_results($meta_query, ARRAY_A);
+
+                // Merge metas into main categories
+                foreach ($metas as $meta) {
+                    foreach ($categories as &$cat) {
+                        if ($cat['id'] == $meta['category_id']) {
+                            $cat[$meta['meta_key']] = $meta['meta_value'];
+                        }
+                    }
+                }
+                unset($cat);
+
+                $category_results = $categories;
+
                 wp_cache_set($cache_key, $category_results, 'author_categories_results_cache', 3600);
             }
         }
@@ -1626,17 +1997,17 @@ if (!function_exists('get_ppma_author_categories')) {
             $merged_results = $single_result ? [$category_results] : $category_results;
             $category_results = array_reduce($merged_results, function ($accumulator, $item) {
                 $id = $item['id'];
-            
+
                 if (!isset($accumulator[$id])) {
                     $accumulator[$id] = $item;
                 }
-            
+
                 if (isset($item['meta_key']) && isset($item['meta_value'])) {
                     $accumulator[$id][$item['meta_key']] = $item['meta_value'];
                 }
-            
+
                 unset($accumulator[$id]['meta_key'], $accumulator[$id]['meta_value']);
-            
+
                 return $accumulator;
             }, []);
             $category_results = $single_result ? array_values($category_results)[0] : array_values($category_results);
@@ -1665,7 +2036,7 @@ if (!function_exists('ppma_get_grouped_post_authors')) {
         if (empty($post_id) && !$authors ) {
             return [];
         }
-        
+
         if (!$authors) {
             $authors = get_post_authors($post_id);
         }
@@ -1694,7 +2065,7 @@ if (!function_exists('ppma_get_grouped_post_authors')) {
             $author_relations       = get_ppma_author_relations(['post_id' => $post_id]);
             $author_categories_data = Post_Editor::group_category_authors($author_categories, $author_relations, $authors);
         }
-        
+
         // TODO: Cache this data
         return $author_categories_data;
     }
@@ -1750,11 +2121,11 @@ if (!function_exists('get_ppma_author_category')) {
      *
      * @param object $author
      * @param array $author_categories_data
-     * 
+     *
      * @return array
      */
     function get_ppma_author_category($author, $author_categories_data) {
-        
+
         $author_category = [];
 
         foreach ($author_categories_data as $author_category_data) {
@@ -1777,12 +2148,12 @@ if (!function_exists('get_ppma_section_content')) {
      * Return section content
      *
      * @param string $page
-     * 
+     *
      * @return string
      */
     function get_ppma_section_content($page) {
         ob_start();
-        
+
         do_settings_sections($page);
 
         return ob_get_clean();
@@ -1806,6 +2177,24 @@ if (!function_exists('get_ppma_get_all_user_roles')) {
         }
 
         return $wp_roles->roles;
+    }
+}
+
+if (!function_exists('publishpress_authors_remove_single_user_map_restriction')) {
+    /**
+     * Determine if single user map restriction should be removed
+     */
+    function publishpress_authors_remove_single_user_map_restriction() {
+         $legacyPlugin = Factory::getLegacyPlugin();
+
+         $remove = $legacyPlugin->modules->multiple_authors->options->enable_guest_author_user === 'yes';
+
+         if (function_exists('pll_current_language') && function_exists('pll_get_term')) {
+            // This restriction should be removed for Polylang due to multi-lang feature
+            $remove = true;
+         }
+
+        return apply_filters('publishpress_authors_remove_single_user_map_restriction', $remove);
     }
 }
 

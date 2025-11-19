@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => '__root__',
-        'pretty_version' => '1.0.0+no-version-set',
-        'version' => '1.0.0.0',
-        'reference' => null,
+        'pretty_version' => 'v4.10.1',
+        'version' => '4.10.1.0',
+        'reference' => '15ab21a3de82f7db1be157475d4cb1cd5559697d',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         '__root__' => array(
-            'pretty_version' => '1.0.0+no-version-set',
-            'version' => '1.0.0.0',
-            'reference' => null,
+            'pretty_version' => 'v4.10.1',
+            'version' => '4.10.1.0',
+            'reference' => '15ab21a3de82f7db1be157475d4cb1cd5559697d',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -74,9 +74,9 @@
             'dev_requirement' => false,
         ),
         'publishpress/wordpress-version-notices' => array(
-            'pretty_version' => '2.1.3',
-            'version' => '2.1.3.0',
-            'reference' => '8e54558d2427a0f93174ccbc1d02c1ba7e2abc8d',
+            'pretty_version' => '2.1.5',
+            'version' => '2.1.5.0',
+            'reference' => 'caf37ca4705f89b882c1e53d9e592939568df944',
             'type' => 'library',
             'install_path' => __DIR__ . '/../publishpress/wordpress-version-notices',
             'aliases' => array(),

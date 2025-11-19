@@ -1,3 +1,41 @@
+= 3.9.9 =
+
+* Update fonts list
+
+= 3.9.8 =
+
+* Add new font weights to the Customizer
+
+= 3.9.7 =
+
+* Migrate build system from cgb-scripts to @wordpress/scripts for improved compatibility
+* Fix TypeError in RangeControl components by using numeric props instead of strings
+* Add type safety to prevent toFixed() errors in block editor
+* Improve Gutenberg font family management with better deduplication and merging logic
+* Add custom font CSS injection to Gutenberg block editor iframe
+* Enhance font slug sanitization using sanitize_title() for better compatibility
+* Improve error handling in font registration with defensive array checking
+* Prevent duplicate font families in Gutenberg font picker
+* Modernize block development workflow with hot reloading and better tooling
+* Update asset management to use automatic dependency injection
+* Replace dist/ directory with build/ directory following WordPress standards
+
+= 3.9.6 =
+
+* Fix issue where if all theme fonts are removed, an error is thrown.
+
+= 3.9.5 =
+
+  * Fix error when use Blubrry podcast plugin
+  * Fix null reference errors when get_current_screen() returns null
+  * Fix memory leak by implementing singleton pattern for font loading with backward compatibility
+  * Fix PHP 8.0+ compatibility by replacing str_starts_with() with strpos()
+  * Fix inconsistent MIME type handling for font file uploads
+
+= 3.9.4 =
+
+* Add Fonts Plugin fonts to Gutenberg (if the theme supports it).
+
 = 3.9.3 =
 
 * Don't default to adding 'font-weight:normal' to Fonts Plugin block.

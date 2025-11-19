@@ -91,6 +91,7 @@ if (!class_exists('MA_Multiple_Authors')) {
                     'append_to_content'            => 'yes',
                     'preppend_to_content'          => 'no',
                     'author_for_new_users'         => [],
+                    'mapped_author_roles'          => ['administrator', 'editor', 'author', 'contributor', 'ppma_guest_author'],
                     'layout'                       => Utils::getDefaultLayout(),
                     'force_empty_author'           => 'no',
                     'username_in_search_field'      => 'no',
@@ -128,8 +129,10 @@ if (!class_exists('MA_Multiple_Authors')) {
                     'enable_guest_author_user'     => 'no',
                     'author_boxes_opt_out'         => 'no',
                     'enable_guest_author_acount'   => 'yes',
+                    'show_editor_author_box_selection'   => 'yes',
                     'default_avatar'               => '',
                     'display_name_format'          => 'custom',
+                    'translate_author_taxonomy' => 'yes'
                 ],
                 'options_page'         => false,
                 'autoload'             => true,
@@ -203,6 +206,7 @@ if (!class_exists('MA_Multiple_Authors')) {
             add_action('multiple_authors_create_post_authors', [$this, 'action_create_post_authors']);
             add_action('multiple_authors_create_role_authors', [$this, 'action_create_role_authors']);
             add_action('multiple_authors_copy_coauthor_plus_data', [$this, 'action_copy_coauthor_plus_data']);
+            add_action('multiple_authors_create_author_categories', [$this, 'action_create_author_categories']);
 
             add_action('deleted_user', [$this, 'handle_deleted_user']);
 
@@ -225,8 +229,8 @@ if (!class_exists('MA_Multiple_Authors')) {
                 add_filter('admin_body_class', [$this, 'filter_admin_body_class']);
             }
 
-            // Fix upload permissions for multiple authors.
-            add_filter('map_meta_cap', [$this, 'filter_map_meta_cap'], 10, 4);
+            // Fix ACF Caps and upload permissions for multiple authors.
+            add_filter('map_meta_cap', [$this, 'filter_map_meta_cap'], 11, 4);
 
             add_filter('publishpress_is_author_of_post', [$this, 'filter_is_author_of_post'], 10, 3);
             add_filter('publishpress_post_authors_names', [$this, 'filter_post_authors_names'], 10, 2);
@@ -599,6 +603,17 @@ if (!class_exists('MA_Multiple_Authors')) {
             );
 
             add_settings_field(
+                'mapped_author_roles',
+                __(
+                    'Roles available for Author Profiles:',
+                    'publishpress-authors'
+                ),
+                [$this, 'settings_mapped_author_roles_option'],
+                $this->module->options_group_name,
+                $this->module->options_group_name . '_general'
+            );
+
+            add_settings_field(
                 'author_for_new_users',
                 __(
                     'Automatically create author profiles:',
@@ -683,6 +698,14 @@ if (!class_exists('MA_Multiple_Authors')) {
             );
 
             add_settings_field(
+                'show_editor_author_box_selection',
+                __('Show Author Box selection:', 'publishpress-authors'),
+                [$this, 'settings_show_editor_author_box_selection_option'],
+                $this->module->options_group_name,
+                $this->module->options_group_name . '_display'
+            );
+
+            add_settings_field(
                 'disable_quick_edit_author_box',
                 __('Disable the "Authors" box when using "Quick Edit":', 'publishpress-authors'),
                 [$this, 'settings_disable_quick_edit_author_box_option'],
@@ -692,7 +715,7 @@ if (!class_exists('MA_Multiple_Authors')) {
 
             add_settings_field(
                 'layout',
-                __('Layout:', 'publishpress-authors'),
+                __('Default Layout:', 'publishpress-authors'),
                 [$this, 'settings_layout_option'],
                 $this->module->options_group_name,
                 $this->module->options_group_name . '_display'
@@ -985,6 +1008,18 @@ if (!class_exists('MA_Multiple_Authors')) {
                 );
             }
 
+
+            /**
+             * Integration
+             */
+
+            add_settings_section(
+                $this->module->options_group_name . '_integration',
+                __return_false(),
+                [$this, 'settings_section_integration'],
+                $this->module->options_group_name
+            );
+
             /**
              * Maintenance
              */
@@ -1034,7 +1069,7 @@ if (!class_exists('MA_Multiple_Authors')) {
                 ),
                 [$this, 'settings_enable_guest_author_user'],
                 $this->module->options_group_name,
-                $this->module->options_group_name . '_guest_authors'
+                $this->module->options_group_name . '_advanced'
             );
 
             add_settings_field(
@@ -1154,6 +1189,11 @@ if (!class_exists('MA_Multiple_Authors')) {
             echo '<input type="hidden" id="ppma-tab-maintenance" />';
         }
 
+        public function settings_section_integration()
+        {
+            echo '<input type="hidden" id="ppma-tab-integration" />';
+        }
+
         public function settings_section_guest_authors()
         {
             echo '<input type="hidden" id="ppma-tab-guest-author" />';
@@ -1252,6 +1292,27 @@ if (!class_exists('MA_Multiple_Authors')) {
                 . checked($value, 'yes', false) . ' />';
             echo '&nbsp;&nbsp;&nbsp;<span class="ppma_settings_field_description">' . esc_html__(
                     'This will display the authors box at the end of the content.',
+                    'publishpress-authors'
+                ) . '</span>';
+            echo '</label>';
+        }
+
+        /**
+         * Displays the field to choose display or not the author box at the
+         * end of the content
+         *
+         * @param array
+         */
+        public function settings_show_editor_author_box_selection_option($args = [])
+        {
+            $id    = $this->module->options_group_name . '_show_editor_author_box_selection';
+            $value = isset($this->module->options->show_editor_author_box_selection) ? $this->module->options->show_editor_author_box_selection : 'yes';
+
+            echo '<label for="' . esc_attr($id) . '">';
+            echo '<input type="checkbox" value="yes" id="' . esc_attr($id) . '" name="' . esc_attr($this->module->options_group_name) . '[show_editor_author_box_selection]" '
+                . checked($value, 'yes', false) . ' />';
+            echo '&nbsp;&nbsp;&nbsp;<span class="ppma_settings_field_description">' . esc_html__(
+                    'Allow users to choose which Author Box is used on each post.',
                     'publishpress-authors'
                 ) . '</span>';
             echo '</label>';
@@ -1689,6 +1750,35 @@ if (!class_exists('MA_Multiple_Authors')) {
         /**
          * @param array $args
          */
+        public function settings_mapped_author_roles_option($args = [])
+        {
+            $id     = $this->module->options_group_name . '_mapped_author_roles';
+            $values = isset($this->module->options->mapped_author_roles) ? $this->module->options->mapped_author_roles : [];
+
+            echo '<label for="' . esc_attr($id) . '">';
+
+            echo '<select id="' . esc_attr($id) . '" name="' . esc_attr($this->module->options_group_name) . '[mapped_author_roles][]" multiple="multiple" class="chosen-select" data-placeholder="'.  esc_attr__('Select roles', 'publishpress-authors') .'">';
+
+            $roles = get_editable_roles();
+
+            foreach ($roles as $role => $data) {
+                $selected = in_array($role, $values) ? 'selected="selected"' : '';
+                echo '<option value="' . esc_attr($role) . '" ' . $selected . '>' . esc_html($data['name']) . '</option>';
+            }
+
+            echo '</select>';
+
+            echo '<p class="ppma_settings_field_description">' . esc_html__(
+                    'Choose which WordPress user roles can be selected using the "Registered Author With User Account" option for author profiles.',
+                    'publishpress-authors'
+                ) . '</p>';
+
+            echo '</label>';
+        }
+
+        /**
+         * @param array $args
+         */
         public function settings_author_for_new_users_option($args = [])
         {
             $id     = $this->module->options_group_name . '_author_for_new_users';
@@ -1798,7 +1888,7 @@ if (!class_exists('MA_Multiple_Authors')) {
 
             echo '&nbsp;&nbsp;&nbsp;<span class="ppma_settings_field_description">'
                 . esc_html__(
-                    'Allow authors to be created without a mapped user.',
+                    'Allow authors to be created without a connected user account.',
                     'publishpress-authors'
                 )
                 . '</span>';
@@ -2583,7 +2673,7 @@ echo '<span class="ppma_settings_field_description">'
                         name="<?php echo esc_attr($this->module->options_group_name) . '[default_author_for_new_posts]'; ?>"
                         data-nonce="<?php echo esc_attr(wp_create_nonce('authors-search')); ?>"
                         class="default-authors-select2"
-                        data-placeholder="<?php esc_attr_e('Search for an author', 'authors'); ?>" style="width: 350px">
+                        data-placeholder="<?php esc_attr_e('Search for an author', 'publishpress-authors'); ?>" style="width: 350px">
                     <option value=""></option>
                     <?php
                     if (!empty($value)) {
@@ -2598,7 +2688,7 @@ echo '<span class="ppma_settings_field_description">'
             <p class="ppma_settings_field_description">
                 <?php echo esc_html__('This setting may be disabled for users who can not edit others posts.', 'publishpress-authors'); ?>
                 <a href="https://publishpress.com/knowledge-base/troubleshooting/#default-author-is-not-applied-to-new-posts" target="_blank">
-                    <?php echo esc_html('Click here for more details.', 'publishpress-authors'); ?>
+                    <?php echo esc_html__('Click here for more details.', 'publishpress-authors'); ?>
                 </a>
             </p>
             <?php
@@ -2619,7 +2709,7 @@ echo '<span class="ppma_settings_field_description">'
                         name="<?php echo esc_attr($this->module->options_group_name) . '[fallback_user_for_guest_post]'; ?>"
                         data-nonce="<?php echo esc_attr(wp_create_nonce('authors-user-search')); ?>"
                         class="authors-select2 authors-user-search fallback-user-search-select2"
-                        data-placeholder="<?php esc_attr_e('Search for a fallback author', 'authors'); ?>" style="width: 350px">
+                        data-placeholder="<?php esc_attr_e('Search for a fallback author', 'publishpress-authors'); ?>" style="width: 350px">
                     <option value=""></option>
                     <?php
                     if (!empty($value)) {
@@ -2751,6 +2841,12 @@ echo '<span class="ppma_settings_field_description">'
                     'button_link' => '',
                     'after'       => '<div id="publishpress-authors-sync-author-slug"></div>',
                 ],
+
+                'create_author_categories' => [
+                    'title'       => esc_html__('Create Author Categories', 'publishpress-authors'),
+                    'description' => esc_html__('This will create author categories table if missing and add default categories.', 'publishpress-authors'),
+                    'button_label' => esc_html__('Create Author Categories', 'publishpress-authors'),
+                ],
             ];
 
             /**
@@ -2759,17 +2855,21 @@ echo '<span class="ppma_settings_field_description">'
             $actions = apply_filters('pp_authors_maintenance_actions', $actions);
 
             if (isset($GLOBALS['coauthors_plus']) && !empty($GLOBALS['coauthors_plus'])) {
-                $actions['copy_coauthor_plus_data'] = [
-                    'title'       => esc_html__('Copy Co-Authors Plus Data', 'publishpress-authors'),
-                    'description' => esc_html__('This action will copy the authors from the plugin Co-Authors Plus allowing you to migrate to PublishPress Authors without losing any data. This action can be run multiple times.', 'publishpress-authors'),
-                    'button_link' => '',
-                    'after'       => '<div id="publishpress-authors-coauthors-migration"></div>',
+                $coauthors_plus_actions = [
+                    'copy_coauthor_plus_data' => [
+                        'title'       => esc_html__('Copy Co-Authors Plus Data', 'publishpress-authors'),
+                        'description' => esc_html__('This action will copy the authors from the plugin Co-Authors Plus allowing you to migrate to PublishPress Authors without losing any data. This action can be run multiple times.', 'publishpress-authors'),
+                        'button_link' => '',
+                        'after'       => '<div id="publishpress-authors-coauthors-migration"></div>',
+                    ]
                 ];
+
+                $actions = array_merge($coauthors_plus_actions, $actions);
             }
 
             $actions['delete_mapped_authors'] = [
-                'title'        => esc_html__('Delete Mapped Authors', 'publishpress-authors'),
-                'description'  => esc_html__('This action can reset the PublishPress Authors data before using other maintenance options. It will delete all author profiles that are mapped to a WordPress user account. This will not delete the WordPress user accounts, but any links between the posts and multiple authors will be lost.', 'publishpress-authors'),
+                'title'        => esc_html__('Delete Connections Between Author Profiles and Users', 'publishpress-authors'),
+                'description'  => esc_html__('This action can reset the PublishPress Authors data before using other maintenance options. It will delete all author profiles that are mapped to a WordPress user account. This will not delete the WordPress user accounts, but any links between the posts and author profiles will be lost.', 'publishpress-authors'),
                 'button_label' => esc_html__('Delete all authors mapped to users', 'publishpress-authors'),
                 'button_icon'  => 'dashicons-warning',
             ];
@@ -2848,6 +2948,14 @@ echo '<span class="ppma_settings_field_description">'
 
             if (!isset($new_options['append_to_content'])) {
                 $new_options['append_to_content'] = 'no';
+            }
+
+            if (!isset($new_options['show_editor_author_box_selection'])) {
+                $new_options['show_editor_author_box_selection'] = 'no';
+            }
+
+            if (!isset($new_options['mapped_author_roles']) || !is_array($new_options['mapped_author_roles'])) {
+                $new_options['mapped_author_roles'] = [];
             }
 
             if (!isset($new_options['author_for_new_users']) || !is_array($new_options['author_for_new_users'])) {
@@ -2977,6 +3085,7 @@ echo '<span class="ppma_settings_field_description">'
                     '#ppma-tab-guest-author' => esc_html__('Author Profiles', 'publishpress-authors'),
                     '#ppma-tab-author-pages' => esc_html__('Author Pages', 'publishpress-authors'),
                     '#ppma-tab-shortcodes'  => esc_html__('Shortcodes', 'publishpress-authors'),
+                    '#ppma-tab-integration'  => esc_html__('Integration', 'publishpress-authors'),
                     '#ppma-tab-maintenance' => esc_html__('Maintenance', 'publishpress-authors'),
                     '#ppma-tab-advanced' => esc_html__('Advanced', 'publishpress-authors'),
                 ]
@@ -2988,8 +3097,13 @@ echo '<span class="ppma_settings_field_description">'
         public function theAuthorPostsLink($link)
         {
             $newLink   = '';
-            $postID    = get_the_id();
+            $post      = get_post();
+            $postID    = $post ? $post->ID : '';
             $authors   = get_post_authors($postID);
+
+            if ($post && ! Utils::is_post_type_enabled($post->post_type)) {
+                return $link;
+            }
 
             foreach ($authors as $author) {
                 if (!empty($newLink)) {
@@ -3138,6 +3252,10 @@ echo '<span class="ppma_settings_field_description">'
             if (is_archive() && Util::isAuthor()) {
                 $authors = [get_archive_author()];
             } else {
+                $enabledPostTypes = Utils::get_enabled_post_types();
+                if (!$post || !in_array($post->post_type, $enabledPostTypes)) {
+                    return false;
+                }
                 $authors = get_post_authors($post);
             }
 
@@ -3552,7 +3670,8 @@ echo '<span class="ppma_settings_field_description">'
                 'create_role_authors',
                 'copy_coauthor_plus_data',
                 'sync_post_author',
-                'sync_author_slug'
+                'sync_author_slug',
+                'create_author_categories'
             ];
 
             if (! isset($_GET['ppma_action']) || isset($_GET['author_term_reset_notice'])
@@ -3637,6 +3756,14 @@ echo '<span class="ppma_settings_field_description">'
                 foreach ($terms as $term) {
                     wp_delete_term($term->term_id, 'author');
                 }
+            }
+        }
+
+        public function action_create_author_categories()
+        {
+            if (class_exists('MA_Author_Categories')) {
+                $author_category_class = new MA_Author_Categories();
+                $author_category_class->runInstallTasks('4.4.1');
             }
         }
 
@@ -3751,7 +3878,8 @@ echo '<span class="ppma_settings_field_description">'
         }
 
         /**
-         * Fix the upload of media for posts when the user is a secondary author and can't edit others' posts.
+         * Fix ACF caps(#2024) and the upload of media for posts when
+         * the user is a secondary author and can't edit others' posts.
          *
          * @param $caps
          * @param $cap
@@ -3778,7 +3906,6 @@ echo '<span class="ppma_settings_field_description">'
                             }
                         }
                     }
-
                     $caps = apply_filters('pp_authors_filter_map_meta_cap', $caps, $cap, $user_id, $post_id);
                 }
             }
@@ -4555,7 +4682,7 @@ echo '<span class="ppma_settings_field_description">'
             }
 
             if (!empty($validPostAuthors)) {
-                Utils::set_post_authors($postId, $validPostAuthors);
+                Utils::set_post_authors($postId, $validPostAuthors, true);
 
                 do_action('publishpress_authors_flush_cache_for_post', $postId);
             }

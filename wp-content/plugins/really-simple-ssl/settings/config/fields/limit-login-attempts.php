@@ -94,6 +94,23 @@ add_filter( 'rsssl_fields', function( $fields ) {
 				],
 			],
 			[
+				'id'       => 'enable_limited_password_reset_attempts',
+				'menu_id'  => 'limit_login_attempts',
+				'group_id' => 'limit_login_attempts_advanced',
+				'type'     => 'checkbox',
+				'label'    => __('Limit Password Reset Attempts', 'really-simple-ssl'),
+				'disabled' => false,
+				'default'  => true,
+				'tooltip'          => __("The user will be blocked after entering too many incorrect logins on the password reset page.",
+					'really-simple-ssl'),
+				'react_conditions' => [
+					'relation' => 'AND',
+					[
+						'enable_limited_login_attempts' => true,
+					]
+				],
+			],
+			[
 				//Captchas
 				'id'               => 'limit_login_attempts_captcha',
 				'menu_id'          => 'limit_login_attempts',
@@ -259,10 +276,18 @@ add_filter( 'rsssl_fields', function( $fields ) {
 				],
 			],
 			[
+				'id' 			 => 'event_log_enabled',
+				'menu_id'        => 'limit_login_attempts',
+				'group_id'       => 'limit_login_attempts_event_log',
+				'type'           => 'hidden',
+				'default'        => false,
+			],
+			[
 				'id'               => 'event_log_viewer',
 				'menu_id'          => 'limit_login_attempts',
 				'group_id'         => 'limit_login_attempts_event_log',
 				'type'             => 'eventlog-datatable',
+				'event_type'        => 'login-protection',
 				'action'           => 'event_log',
 				'label'            => __('IP address overview', 'really-simple-ssl'),
 				'disabled'         => false,
@@ -270,7 +295,7 @@ add_filter( 'rsssl_fields', function( $fields ) {
 				'react_conditions' => [
 					'relation' => 'AND',
 					[
-						'enable_limited_login_attempts' => true,
+						'event_log_enabled' => true,
 					]
 				],
 				'columns'          => [

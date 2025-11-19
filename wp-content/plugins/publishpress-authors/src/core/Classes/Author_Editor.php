@@ -258,8 +258,8 @@ class Author_Editor
         foreach ($fields_tabs as $key => $args) {
             $active_tab = ($key === self::AUTHOR_EDITOR_DEFAULT_TAB) ? ' nav-tab-active' : '';
         ?>
-        <a data-tab="<?php esc_attr_e($key); ?>" 
-            class="<?php esc_attr_e('tab-link nav-tab' . $active_tab ); ?>" 
+        <a data-tab="<?php esc_attr_e($key); ?>"
+            class="<?php esc_attr_e('tab-link nav-tab' . $active_tab ); ?>"
             href="#"
             >
             <?php esc_html_e($args['label']); ?>
@@ -352,7 +352,7 @@ class Author_Editor
         $author_boxes_opt_out = $legacyPlugin->modules->multiple_authors->options->author_boxes_opt_out === 'yes';
         $fields = [
             'user_id'     => [
-                'label'    => esc_html__('Mapped User', 'publishpress-authors'),
+                'label'    => esc_html__('Registered User', 'publishpress-authors'),
                 'type'     => 'ajax_user_select',
                 'sanitize' => 'intval',
                 'tab'      => 'general',
@@ -391,7 +391,7 @@ class Author_Editor
                                             esc_html__(
                                                 '(Uses the %1s Email field %2s to find the Gravatar account if default avatar is not uploaded in Authors Settings)',
                                                 'publishpress-authors'
-                                            ), 
+                                            ),
                                             '<a href="#" class="ppma-image-general-author-focus">', '</a>'
                                         )
                     ],
@@ -481,7 +481,7 @@ class Author_Editor
         }
         ob_start();
         ?>
-        <tr 
+        <tr
             class="<?php echo esc_attr('form-field term-' . $key . '-wrap '. $tab_class); ?>"
             data-tab="<?php echo esc_attr($args['tab']); ?>"
             style="<?php echo esc_attr($tab_style); ?>"
@@ -517,7 +517,7 @@ class Author_Editor
                         <input name="<?php echo esc_attr($key); ?>" class="author-image-field-id" type="hidden"
                                value="<?php echo esc_attr($args['value']); ?>"/>
                     </div>
-                <?php 
+                <?php
                 elseif ('avatar' === $args['type']) :
 
                     $author_image = wp_get_attachment_image_url($args['value'], 'thumbnail');
@@ -538,7 +538,7 @@ class Author_Editor
                                 value="<?php echo esc_attr($avatar_option_key); ?>"
                                 id="<?php echo esc_attr($avatar_option_key.'-'.$key.'-options'); ?>"
                                 <?php checked($avatar_option_key, $checked_option); ?> />
-                            
+
                             <label for="<?php echo esc_attr($avatar_option_key.'-'.$key.'-options'); ?>">
                                 <?php echo esc_html($avatar_option_data['label']); ?>
                                 <?php if (isset($avatar_option_data['description'])) : ?>
@@ -588,14 +588,14 @@ class Author_Editor
                     ?>
                     <div class="ppma-group-wrap">
                         <div class="ppma-button-group">
-                            <?php 
+                            <?php
                             $group_description = '';
-                            foreach ($button_options as $group => $group_option) : 
+                            foreach ($button_options as $group => $group_option) :
                                 $group_option_style = $group === $selected_button ? '' : 'display: none;';
                                 $group_description .= '<p class="ppma-button-description description '. esc_attr($group) .'" style="'. $group_option_style .'">'. $group_option['description'] .'</p>';
                             ?>
                                 <label class="<?php echo $group === $selected_button ? 'selected' : ''; ?>">
-                                    <input type="radio" name="<?php echo esc_attr($key); ?>" value="<?php echo esc_attr($group); ?>" <?php checked($group, $selected_button) ?>> 
+                                    <input type="radio" name="<?php echo esc_attr($key); ?>" value="<?php echo esc_attr($group); ?>" <?php checked($group, $selected_button) ?>>
                                     <?php echo esc_attr($group_option['label']); ?>
                                 </label>
                             <?php endforeach; ?>
@@ -604,13 +604,13 @@ class Author_Editor
                     </div>
                 <?php elseif ('wysiwyg' === $args['type']) : ?>
                     <?php wp_editor($args['value'], $key, []); ?>
-                <?php elseif ('checkbox' === $args['type']) : 
+                <?php elseif ('checkbox' === $args['type']) :
                     $checked = !empty($args['value']);
                     ?>
                     <input name="<?php echo esc_attr($key); ?>" type="<?php echo esc_attr($args['type']); ?>"
                            id="<?php echo esc_attr($key); ?>" value="1" <?php checked($checked, true); ?>/>
-                
-                <?php elseif ('select' === $args['type']) : 
+
+                <?php elseif ('select' === $args['type']) :
                     ?>
                     <select name="<?php echo esc_attr($key); ?>" id="<?php echo esc_attr($key); ?>"/>
                     <?php foreach ($args['options'] as $option_value => $option_text) :
@@ -659,24 +659,22 @@ class Author_Editor
         }
 
         /**
-         * Make sure current user is set as user ID if user does not 
+         * Make sure current user is set as user ID if user does not
          * have capability to edit other authors/users.
-         * 
+         *
          * Note: Prevent ability to edit administrator completely.
          */
         if ($user && (int)$user_id !== get_current_user_id()) {
-            
             // Prevent editing administrators completely
             if (in_array('administrator', $user->roles)) {
                 $user_id = false;
                 $user = false;
             }
-            // Check if the user lacks the necessary capabilities and fallback to current user
+            // Check if the user lacks the necessary capabilities and prevent the user update
             elseif (!current_user_can(get_taxonomy('author')->cap->manage_terms)
                     || !current_user_can('edit_user', $user_id)) {
-                // Fallback to current user if they lack permissions
-                $user_id    = get_current_user_id();
-                $user       = get_user_by('id', $user_id);
+                $user_id = false;
+                $user = false;
             }
         }
 
@@ -814,7 +812,7 @@ class Author_Editor
             echo '</div>';
             ?>
             <div class="form-field term-author_email-wrap" style="display: none;">
-                <label class="ppma-account-email"><?php echo esc_html__('Author Email', 'publishpress-authors'); ?></label>
+                <label class="ppma-account-email"><?php echo esc_html__('Author Email', 'publishpress-authors'); ?> <span class="required">*</span></label>
                 <?php
                 echo static::get_rendered_author_partial( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                     [
@@ -826,7 +824,7 @@ class Author_Editor
             echo '</div>';
             ?>
             <div class="form-field term-user_id-wrap">
-                <label for="tag-user-id"><?php echo esc_html__('Select Author Account', 'publishpress-authors'); ?></label>
+                <label for="tag-user-id"><?php echo esc_html__('User Account', 'publishpress-authors'); ?> <span class="required">*</span></label>
                 <?php
                 echo static::get_rendered_author_partial( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                     [
@@ -989,6 +987,7 @@ class Author_Editor
             $legacyPlugin = Factory::getLegacyPlugin();
             $author_id = (int)$_POST['authors-new'];
             $enable_guest_author_user = $legacyPlugin->modules->multiple_authors->options->enable_guest_author_user === 'yes';
+            $author_type = !empty($_POST['authors-author_type']) ? sanitize_text_field($_POST['authors-author_type']) : '';
             /**
              * Check if term with this user exist
              */
@@ -996,8 +995,8 @@ class Author_Editor
                 && (int)$_POST['authors-new'] > 0
             ) {
                 $author    = Author::get_by_user_id($author_id);
-                $remove_single_user_map_restriction = $legacyPlugin->modules->multiple_authors->options->remove_single_user_map_restriction === 'yes';
-                
+                $remove_single_user_map_restriction = publishpress_authors_remove_single_user_map_restriction();
+
                 if (!$remove_single_user_map_restriction
                     && $author
                     && is_object($author)
@@ -1058,7 +1057,7 @@ class Author_Editor
             }
 
             // create guest author user
-            if (!empty($_POST['authors-author_type']) && $_POST['authors-author_type'] === 'new_user') {
+            if ($author_type === 'new_user') {
                 if (empty($_POST['authors-author_email'])) {
                     return new WP_Error(
                         'publishpress_authors_email_required',
@@ -1094,12 +1093,12 @@ class Author_Editor
                     }
                 }
             }
-            
-            if (!$enable_guest_author_user && $author_id === 0) {
+
+            if ((!$enable_guest_author_user || $author_type === 'existing_user') && $author_id === 0) {
                 return new WP_Error(
                     'publishpress_authors_mapped_user_required',
                     esc_html__(
-                        'Mapped user is required.',
+                        'Registered User is required.',
                         'publishpress-authors'
                     )
                 );

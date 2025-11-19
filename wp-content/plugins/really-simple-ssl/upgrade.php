@@ -1,25 +1,31 @@
 <?php
+
+use RSSSL\Security\RSSSL_Htaccess_File_Manager;
+
 defined( 'ABSPATH' ) or die();
 
 add_action( 'plugins_loaded', 'rsssl_upgrade', 20 );
 function rsssl_upgrade() {
+
 	#only run upgrade check if cron, or if admin.
 	if ( ! rsssl_admin_logged_in() ) {
 		return;
 	}
 
 	$prev_version = get_option( 'rsssl_current_version', false );
+
 	//no version change, skip upgrade.
 	if ( $prev_version && version_compare( $prev_version, rsssl_version, '==' ) ) {
 		return;
 	}
 	//dismiss notices that should be dismissed on plugin upgrade
 	if ( $prev_version && version_compare( $prev_version, rsssl_version, '!=' ) ) {
-		$dismiss_options = RSSSL()->admin->get_notices_list(
-			array(
-				'dismiss_on_upgrade' => true,
-			)
-		);
+		// $dismiss_options = RSSSL()->admin->get_notices_list(
+		// 	array(
+		// 		'dismiss_on_upgrade' => true,
+		// 	)
+		// );
+		$dismiss_options = ['mixed_content_scan']; // Temporary fix for translation issues on plugins_loaded.
 		foreach ( $dismiss_options as $dismiss_option ) {
 			if ( !is_string($dismiss_option) ) continue;
 			update_option( 'rsssl_' . $dismiss_option . '_dismissed', true, false );
@@ -37,13 +43,21 @@ function rsssl_upgrade() {
 	}
 
 	if ( $prev_version && version_compare( $prev_version, '5.3.0', '<=' ) ) {
-		if ( file_exists( RSSSL()->admin->htaccess_file() ) && is_writable( RSSSL()->admin->htaccess_file() ) ) {
-			$htaccess      = file_get_contents( RSSSL()->admin->htaccess_file() );
-			$pattern_start = '/rlrssslReallySimpleSSL rsssl_version\[.*.]/';
-			if ( preg_match_all( $pattern_start, $htaccess ) ) {
-				$htaccess = preg_replace( $pattern_start, 'Really Simple SSL Redirect ' . rsssl_version, $htaccess );
-				$htaccess = str_replace( 'rlrssslReallySimpleSSL', 'Really Simple SSL Redirect', $htaccess );
-				file_put_contents( RSSSL()->admin->htaccess_file(), $htaccess );
+		$fileManager = RSSSL_Htaccess_File_Manager::get_instance();
+		if ( $fileManager->validate_htaccess_file_path() ) {
+			$htaccess =$fileManager->get_htaccess_content();
+
+			// Safely match the legacy pattern: rlrssslReallySimpleSSL rsssl_version[...]
+			$pattern = '/rlrssslReallySimpleSSL\s+rsssl_version\[[^]]+]/';
+			$replacement = 'Really Simple Security Redirect ' . rsssl_version;
+
+			$updated = preg_replace( $pattern, $replacement, $htaccess );
+			$updated = str_replace( 'rlrssslReallySimpleSSL', 'Really Simple Security Redirect', $updated );
+
+			// Only write if the updated content differs from the current content and is not empty.
+			if ( $updated !== $htaccess && ! empty( trim( $updated ) ) ) {
+				// Use an exclusive lock when writing to avoid race conditions with other writers.
+				file_put_contents( $fileManager->htaccess_file_path, $updated, LOCK_EX );
 			}
 		}
 	}
@@ -170,7 +184,12 @@ function rsssl_upgrade() {
 	}
 
 	if ( $prev_version && version_compare( $prev_version, '6.2.3', '<' ) ) {
-		rsssl_update_option( 'send_notifications_email', 1 );
+		//rsssl_update_option( 'send_notifications_email', 1 );
+		//do not use rsssl_update_option as it will load all fields, causing translation issues on plugins_loaded hook.
+		$options = get_option('rsssl_options', []);
+		if ( !is_array($options) ) $options = [];
+			$options['send_notifications_email'] = 1;
+		update_option( 'rsssl_options', $options);
 	}
 
 	if ( $prev_version && version_compare( $prev_version, '6.2.4', '<' ) ) {
@@ -189,22 +208,72 @@ function rsssl_upgrade() {
 	if ( $prev_version && version_compare( $prev_version, '8.1.2', '<' ) ) {
 		do_action('rsssl_update_rules');
 	}
-	//pro
-	if ( $prev_version && version_compare( $prev_version, '8.2.1', '<' ) ) {
+
+	if ( $prev_version && version_compare( $prev_version, '8.3.0', '<' ) ) {
+		wp_clear_scheduled_hook('rsssl_pro_every_hour_hook');
+		wp_clear_scheduled_hook('rsssl_pro_every_day_hook');
+		wp_clear_scheduled_hook('rsssl_pro_five_minutes_hook');
+		wp_clear_scheduled_hook('rsssl_le_every_week_hook');
+		wp_clear_scheduled_hook('rsssl_le_every_day_hook');
+
+		//split rsssl_key in two options so we can upgrade separately
+		$key = get_option( 'rsssl_key');
+		$site_key = get_site_option( 'rsssl_key');
+		if ( $key ) {
+			update_option( 'rsssl_license_key', $key, false );
+		}
+		if ( $site_key ) {
+			update_site_option( 'rsssl_le_key', $site_key );
+		}
+
+		delete_site_option('rsssl_key');
+		delete_option('rsssl_key');
+		update_option('rsssl_upgrade_le_key', true, false);
+	}
+
+	if ( $prev_version && version_compare( $prev_version, '9.0', '<' ) ) {
+		// Replace Really Simple SSL with Really Simple Security in wp-config.php, .htaccess,
+		// advanced-headers.php
+		RSSSL()->admin->update_branding_in_files();
+		RSSSL()->admin->clear_admin_notices_cache();
+	}
+
+	if ( $prev_version && version_compare( $prev_version, '9.1.1', '<' ) ) {
 		do_action('rsssl_update_rules');
 	}
+    if ( $prev_version && version_compare( $prev_version, '9.1.1.1', '<=' ) ) {
+        update_option('rsssl_reset_fix', true, false);
+    }
 
-
-	if ( $prev_version && version_compare( $prev_version, '8.2.1', '<' ) ) {
-		delete_option( 'rsssl_xmlrpc_db_version' );
-		delete_option( 'rsssl_csp_db_version' );
-		delete_option( 'rsssl_geo_block_db_version' );
-		delete_option( 'rsssl_login_attempts_db_version' );
-		delete_option( 'rsssl_event_log_db_version' );
+	// Fetch Google crawler IP's when Geo Block is enabled
+	if ( $prev_version && version_compare( $prev_version, '9.3.6', '<=' ) ) {
+		if ( class_exists( '\RSSSL\Pro\Security\WordPress\Rsssl_Geo_Block' ) ) {
+			// Trigger action to update rules
+			do_action( 'rsssl_update_rules' );
+			$geo_block = \RSSSL\Pro\Security\WordPress\Rsssl_Geo_Block::get_instance();
+			$geo_block->fetch_google_crawler_ips();
+		}
 	}
 
-	if ( $prev_version && version_compare( $prev_version, '8.2.3', '<' ) ) {
-		update_site_option('rsssl_geo_ip_database_file', get_option('rsssl_geo_ip_database_file') );
+	// Upgrade .htaccess rules for sites using LiteSpeed cache
+	if ( $prev_version && version_compare( $prev_version, '9.4.2.1', '<=' ) ) {
+		// Check for LiteSpeed Cache plugin
+		if ( defined( 'LSCWP_V' ) && LSCWP_V ) {
+			do_action('rsssl_update_rules');
+		}
+	}
+
+	// Delete the ajax fallback option as it is no longer used.
+	if ( $prev_version && version_compare( $prev_version, '9.4.2.1', '<=' ) ) {
+		delete_option('rsssl_ajax_fallback_active');
+	}
+
+	// Upgrade .htaccess rules for sites using LiteSpeed cache
+	if ( $prev_version && version_compare( $prev_version, '9.4.2.1', '<=' ) ) {
+		// Check for LiteSpeed Cache plugin
+		if ( defined( 'LSCWP_V' ) && LSCWP_V ) {
+			do_action('rsssl_update_rules');
+		}
 	}
 
 	//don't clear on each update.

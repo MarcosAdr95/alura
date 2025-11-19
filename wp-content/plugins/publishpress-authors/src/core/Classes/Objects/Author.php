@@ -353,8 +353,15 @@ class Author
             update_term_meta($term_id, 'user_id', $userId);
             update_term_meta($term_id, 'user_id_' . $userId, $userId);
         } else {
+            if (!empty($author->user_login)) {
+                $user_login = $author->user_login;
+            } elseif (!empty($author->slug)) {
+                $user_login = $author->slug;
+            } else {
+                $user_login = sanitize_title($new_author_email);
+            }
             $user_data = [
-                'user_login'    => !empty($author->user_login)? $author->user_login : sanitize_title($new_author_email),
+                'user_login'    => $user_login,
                 'display_name'  => $author->display_name,
                 'user_email'    => $new_author_email,
                 'user_pass'     => wp_generate_password(),
@@ -376,13 +383,13 @@ class Author
     public static function generate_random_domain_email($unique_id = '') {
         // Get current timestamp
         $timestamp = $unique_id . time();
-        
+
         // Get website domain
         $domain = parse_url(get_bloginfo('url'), PHP_URL_HOST);
-        
+
         // Generate the email
         $random_email = 'guestauthor+' . $timestamp . '@' . $domain;
-        
+
         return $random_email;
     }
 
@@ -477,7 +484,7 @@ class Author
     public function __get($attribute)
     {
         // Underscore prefix means protected.
-        if ('_' === $attribute[0]) {
+        if (empty($attribute) || '_' === $attribute[0]) {
             return null;
         }
 
@@ -911,9 +918,9 @@ class Author
     public static function get_author_posts_count($term_id, $post_type = 'post')
     {
         global $wpdb;
-        
+
         $cache_key = $post_type . '_' . $term_id;
-     
+
         $counts = wp_cache_get($cache_key, 'counts');
 
         if (!$counts) {
@@ -927,7 +934,7 @@ class Author
 
             $join       .= " LEFT JOIN {$wpdb->term_relationships} ON ({$wpdb->posts}.ID = {$wpdb->term_relationships}.object_id)";
             $join       .= " LEFT JOIN {$wpdb->term_taxonomy} ON ({$wpdb->term_relationships}.term_taxonomy_id = {$wpdb->term_taxonomy}.term_taxonomy_id)";
-            
+
             $where      .= $wpdb->prepare(" AND {$wpdb->term_taxonomy}.taxonomy = %s", "author");
             $where      .= $wpdb->prepare(" AND {$wpdb->term_taxonomy}.term_id = %d", $term_id);
             $where      .= $wpdb->prepare(" AND {$wpdb->posts}.post_type = %s", $post_type);
@@ -991,9 +998,9 @@ class Author
              * @since 3.16.2
              */
             $expire_days = apply_filters(
-                'ppma_author_posts_count_cache_expire_days', 
-                $expire_days, 
-                $term_id, 
+                'ppma_author_posts_count_cache_expire_days',
+                $expire_days,
+                $term_id,
                 $post_type
             );
 
@@ -1001,14 +1008,14 @@ class Author
 
             wp_cache_set($cache_key, $counts, 'counts', $expire);
         }
-        
+
         /**
          * Filter author posts count.
-         * 
+         *
          * @param integer $counts
          * @param string  $term_id  Author term id.
          * @param string  $post_type   Post type.
-         * 
+         *
          * @since 3.16.2
          */
         return apply_filters('ppma_author_posts_count', $counts, $term_id, $post_type);

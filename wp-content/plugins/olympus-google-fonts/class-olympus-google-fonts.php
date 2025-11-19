@@ -38,7 +38,7 @@ class Olympus_Google_Fonts {
 	 */
 	public function constants() {
 		if ( ! defined( 'OGF_VERSION' ) ) {
-			define( 'OGF_VERSION', '3.9.3' );
+			define( 'OGF_VERSION', '3.9.9' );
 		}
 
 		if ( ! defined( 'OGF_DIR_PATH' ) ) {
@@ -57,6 +57,7 @@ class Olympus_Google_Fonts {
 		// Required files for the Gutenberg editor.
 		require_once OGF_DIR_PATH . 'blocks/init.php';
 		require_once OGF_DIR_PATH . 'includes/gutenberg/output-css.php';
+		require_once OGF_DIR_PATH . 'includes/gutenberg/class-ogf-gutenberg-filters.php';
 
 		// Custom uploads functionality.
 		require_once OGF_DIR_PATH . 'includes/class-ogf-fonts-taxonomy.php';
@@ -132,7 +133,7 @@ class Olympus_Google_Fonts {
 	 * Enqueue the Google Fonts URL.
 	 */
 	public function enqueue() {
-		$fonts = new OGF_Fonts();
+		$fonts = OGF_Fonts::get_instance();
 
 		if ( ! $fonts->has_google_fonts() ) {
 			return;
@@ -163,7 +164,7 @@ class Olympus_Google_Fonts {
 			return $urls;
 		}
 
-		$fonts = new OGF_Fonts();
+		$fonts = OGF_Fonts::get_instance();
 
 		// If no Google Fonts are being used we don't need this.
 		if ( ! $fonts->has_google_fonts() ) {

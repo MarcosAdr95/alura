@@ -150,7 +150,7 @@ class Utils
             );
         }
 
-        Utils::set_post_authors($post_id, $authors);
+        Utils::set_post_authors($post_id, $authors, true);
 
         do_action('publishpress_authors_flush_cache_for_post', $post_id);
 
@@ -166,11 +166,28 @@ class Utils
      * @param int $fallbackUserId User ID for using as the author in case no author or if only guests are selected
      * @param array $categories for authors
      */
-    public static function set_post_authors($postId, $authors, $syncPostAuthor = true, $fallbackUserId = null, $author_categories = [])
+    public static function set_post_authors($postId, $authors, $syncPostAuthor = false, $fallbackUserId = null, $author_categories = [])
     {
+        $post_type = get_post_field('post_type', $postId);
+        $enabledPostTypes = Utils::get_enabled_post_types();
+
+        if ($post_type && !in_array($post_type, $enabledPostTypes)) {
+            return;
+        }
+
         static::set_post_authors_name_meta($postId, $authors);
 
         if ($syncPostAuthor) {
+            /**
+             * TODO:
+             * At this point, this is becoming an issue, we;ve received numerous report
+             * on multiple query on page load including #2119 that reports +1,200 insert
+             * on media page, and a report on some cache clearing on everypage load affecting performance.
+             * I'll need to monitor the effect of this function and see any alternative that's more efficient.
+             *
+             * At least, we shouldn't call this function on post update again and $syncPostAuthor parameter
+             * should be optional.
+             */
             static::sync_post_author_column($postId, $authors, $fallbackUserId);
         }
 
@@ -271,6 +288,7 @@ class Utils
      */
     public static function sync_post_author_column($postId, $authors, $fallbackUserId = null)
     {
+
         $functionSetPostAuthor = function ($postId, $authorId) {
             global $wpdb;
 
@@ -632,6 +650,10 @@ class Utils
         $taxonomy = get_taxonomy('author');
         $postTypes = $taxonomy->object_type;
 
+        if (!$postTypes || !is_array($postTypes)) {
+            return [];
+        }
+
         if (($keyToUnset = array_search('customize_changeset', $postTypes)) !== false) {
             unset($postTypes[$keyToUnset]);
         }
@@ -802,6 +824,11 @@ class Utils
         }
 
         return true;
+    }
+
+    public static function isMolonguiAuthorshipActivated()
+    {
+        return defined('MOLONGUI_AUTHORSHIP_VERSION');
     }
 
     public static function getDefaultLayout()
@@ -1114,30 +1141,6 @@ class Utils
     {
         ?>
         <div class="ppma-advertisement-right-sidebar">
-            <div class="advertisement-box-content postbox ppma-advert">
-                <div class="postbox-header ppma-advert">
-                    <h3 class="advertisement-box-header hndle is-non-sortable">
-                        <span><?php echo esc_html__('Upgrade to PublishPress Authors Pro', 'publishpress-authors'); ?></span>
-                    </h3>
-                </div>
-
-                <div class="inside ppma-advert">
-                    <p><?php echo esc_html__('Enhance the power of PublishPress Authors with the Pro version:', 'publishpress-authors'); ?>
-                    </p>
-                    <ul>
-                        <li><?php echo esc_html__('Add new Author Fields', 'publishpress-authors'); ?></li>
-                        <li><?php echo esc_html__('Add fields for social networks', 'publishpress-authors'); ?></li>
-                        <li><?php echo esc_html__('Extra features for Author Lists', 'publishpress-authors'); ?></li>
-                        <li><?php echo esc_html__('Create Author Boxes with authors organized in categories', 'publishpress-authors'); ?></li>
-                        <li><?php echo esc_html__('Support for Polylang', 'publishpress-authors'); ?></li>
-                        <li><?php echo esc_html__('Remove PublishPress ads and branding', 'publishpress-authors'); ?></li>
-                        <li><?php echo esc_html__('Fast, professional support', 'publishpress-authors'); ?></li>
-                    </ul>
-                    <div class="upgrade-btn">
-                        <a href="https://publishpress.com/links/authors-menu" target="__blank"><?php echo esc_html__('Upgrade to Pro', 'publishpress-authors'); ?></a>
-                    </div>
-                </div>
-            </div>
             <div class="advertisement-box-content postbox ppma-advert">
                 <div class="postbox-header ppma-advert">
                     <h3 class="advertisement-box-header hndle is-non-sortable">

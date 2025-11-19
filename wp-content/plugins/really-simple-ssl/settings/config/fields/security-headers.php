@@ -21,7 +21,7 @@ add_filter( 'rsssl_fields', function( $fields ) {
 				'help'     => [
 					'label' => 'default',
 					'url'   => 'definition/about-recommended-security-headers',
-					'title' => __("About Recommended Security Headers", 'really-simple-ssl'),
+					'title' => __("About Essential Security Headers", 'really-simple-ssl'),
 					'text'  => __('These security headers are the fundamental security measures to protect your website visitors while visiting your website.',
 						'really-simple-ssl'),
 				],
@@ -46,7 +46,8 @@ add_filter( 'rsssl_fields', function( $fields ) {
 					'SAMEORIGIN' => 'SAMEORIGIN',
 				],
 				'label'    => "X-Frame options",
-				'disabled' => false,
+				'disabled' => defined('rsssl_pro'),
+				'comment' => defined('rsssl_pro') ? __("This option is handled by the Content Security Policy/frame-ancestors setting.", "really-simple-ssl") : "",
 				'default'  => false,
 			],
 			[
@@ -336,14 +337,14 @@ add_filter( 'rsssl_fields', function( $fields ) {
 				],
 				'label'    => __( "Allow your domain to be embedded", "really-simple-ssl" ),
 				'disabled' => false,
-				'default'  => 'disabled',
+				'default'  => 'self',
 			],
 			[
 				'id'       => 'csp_frame_ancestors_urls',
 				'menu_id'  => 'content_security_policy',
 				'group_id' => 'frame_ancestors',
 				'type'     => 'textarea',
-				'label'    => __( "Add additional domains which can embed your website, if needed. Comma seperated.", "really-simple-ssl" ),
+				'label'    => __( "Add additional domains which can embed your website, if needed. Comma separated.", "really-simple-ssl" ),
 				'disabled' => maybe_disable_frame_ancestors_url_field(),
 				'default'  => false,
 				'react_conditions'        => [
@@ -386,37 +387,44 @@ add_filter( 'rsssl_fields', function( $fields ) {
 						'sortable' => false,
 						'column'   => 'documenturi',
 						'grow'     => 2,
+                        'width'    => '20%',
 					],
 					[
 						'name'     => __( 'Directive', 'really-simple-ssl' ),
 						'sortable' => false,
 						'column'   => 'violateddirective',
 						'grow'     => 1,
+                        'width'    => '25%',
 					],
 					[
 						'name'     => __( 'Source', 'really-simple-ssl' ),
 						'sortable' => false,
 						'column'   => 'blockeduri',
 						'grow'     => 1,
+                        'width'    => '30%',
 					],
 					[
-						'name'     => __( 'Action', 'really-simple-ssl' ),
+						'name'     => __( '', 'really-simple-ssl' ),
 						'sortable' => false,
 						'column'   => 'statusControl',
 						'grow'     => 1,
+                        'width'    => '10%',
 					],
 					[
-						'name'     => __('Delete', 'really-simple-ssl'),
+						'name'     => __('', 'really-simple-ssl'),
 						'sortable' => false,
 						'column'   => 'deleteControl',
 						'grow'     => 1,
+                        'width'    => '10%',
 					],
-					[   //placeholder until we have resolved the columns
-						'name'     => '',
-					],
+//					[   //placeholder until we have resolved the columns
+//						'name'     => '',
+//					],
 				],
+                'modal' => [
+                    'options' => (defined('rsssl_pro') ? array_keys(RSSSL()->headers->directives) : []),
+                ]
 			],
 		]
 	);
 }, 200 );
-

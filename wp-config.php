@@ -1,4 +1,7 @@
 <?php
+//Begin Really Simple Security key
+define('RSSSL_KEY', 'Np9LGXVSHkiIduEXhZ43Z2vCpDgNhfUhx42FEUkuOIMBKHknK0faRuCITzLy1xrN');
+//END Really Simple Security key
 //Begin Really Simple SSL session cookie settings
 @ini_set('session.cookie_httponly', true);
 @ini_set('session.cookie_secure', true);
@@ -92,8 +95,6 @@ $table_prefix = 'wp_';
  * @link https://developer.wordpress.org/advanced-administration/debug/debug-wordpress/
  */
 define('WP_DEBUG', false);
-
-// define('WP_DEBUG', true);
 // define('WP_DEBUG_LOG', true);
 // define('WP_DEBUG_DISPLAY', true); // Temporariamente, mostra o erro na tela
 // @ini_set('display_errors', 1);

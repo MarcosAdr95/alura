@@ -49,6 +49,7 @@ $rsp-break-xxl: 1599px;
   --rsp-red-faded: #fbebed;
   --rsp-pink-faded: #fceff5;
   --rsp-wp-blue-faded: #c6e0ef;
+  --rsp-simplybook-blue: #06ADEF;
 
   --rsp-background-block-color: var(--rsp-white);
   --rsp-background-color: #f0f0f1; //#f0f0f1 is the default wordpress bg color
@@ -100,7 +101,6 @@ $rsp-break-xxl: 1599px;
 
 @mixin rsssl-block-padding {
   padding: var(--rsp-spacing-m) var(--rsp-spacing-l);
-
   @media screen and (max-width: $rsp-break-m) {
     padding: var(--rsp-spacing-xs) var(--rsp-spacing-s);
   }
@@ -126,7 +126,6 @@ $rsp-break-xxl: 1599px;
 
 @mixin rsssl-inline-block-padding {
   padding-inline: var(--rsp-spacing-l);
-
   @media screen and (max-width: $rsp-break-m) {
     padding-inline: var(--rsp-spacing-m);
   }

@@ -2,6 +2,7 @@ import {__} from "@wordpress/i18n";
 import {useEffect, useState} from "@wordpress/element";
 
 const DeactivationModal = () => {
+
     const [isOpen, setOpen] = useState(false);
     const [RssslModal, setRssslModal] = useState(false);
     const [targetPluginLink, setTargetPluginLink] = useState(null);
@@ -9,24 +10,29 @@ const DeactivationModal = () => {
 
     useEffect(() => {
         // Dynamically set the targetPluginLink based on isPremium
-        const linkId = isPremium ? 'deactivate-really-simple-ssl-pro' : 'deactivate-really-simple-ssl';
-        const linkElement = document.getElementById(linkId);
-        setTargetPluginLink(linkElement);
+        const linkId = isPremium ? 'deactivate-really-simple-security-pro' : 'deactivate-really-simple-security';
 
-        const handleClick = (event) => {
-            event.preventDefault();
-            setOpen(true);
+        const handleDeactivationClick = (event) => {
+            const target = event.target.closest(`#${linkId}`);
+            if (target) {
+                event.preventDefault();
+                setTargetPluginLink(target);
+                setOpen(true); // Show modal
+            }
         };
 
+        // Ensure we intercept the click BEFORE any other handlers
+        document.addEventListener('click', handleDeactivationClick, true);
+
+        // Also try to set the link element immediately if it exists
+        const linkElement = document.getElementById(linkId);
         if (linkElement) {
-            linkElement.addEventListener('click', handleClick);
+            setTargetPluginLink(linkElement);
         }
 
         // Clean up the event listener
         return () => {
-            if (linkElement) {
-                linkElement.removeEventListener('click', handleClick);
-            }
+            document.removeEventListener('click', handleDeactivationClick, true);
         };
     }, [isPremium]); // Re-run this effect if isPremium changes
 
@@ -37,9 +43,7 @@ const DeactivationModal = () => {
 
     const deactivateAndRevert = () => {
         setOpen(false);
-        if (targetPluginLink) {
-            window.location.href = targetPluginLink.getAttribute('href');
-        }
+        window.location.href = rsssl_modal.deactivate_revert_https;
     };
 
     useEffect(() => {
@@ -64,64 +68,59 @@ const DeactivationModal = () => {
             {
                 'icon': 'circle-times',
                 'color': 'red',
-                'text': __("Performant HTTPS redirection", "really-simple-ssl"),
+                'text': __("SSL Encryption", "really-simple-ssl"),
             },
             {
                 'icon': 'circle-times',
                 'color': 'red',
-                'text': __("Vulnerability Detection", "really-simple-ssl"),
+                'text': __("Firewall", "really-simple-ssl"),
             },
             {
                 'icon': 'circle-times',
                 'color': 'red',
-                'text': __("Security Headers", "really-simple-ssl"),
+                'text': __("Vulnerability Management", "really-simple-ssl"),
             },
             {
                 'icon': 'circle-times',
                 'color': 'red',
-                'text': __("Advanced Hardening", "really-simple-ssl"),
+                'text': __("WordPress Hardening", "really-simple-ssl"),
             },
             {
                 'icon': 'circle-times',
                 'color': 'red',
-                'text': __("Mixed content Scan", "really-simple-ssl"),
+                'text': __("Login Protection", "really-simple-ssl"),
             },
             {
                 'icon': 'circle-times',
                 'color': 'red',
-                'text': __("Two-step verification", "really-simple-ssl"),
-            },
-            {
-                'icon': 'circle-times',
-                'color': 'red',
-                'text': __("Password security", "really-simple-ssl"),
+                'text': __("Two-Factor Authentication", "really-simple-ssl"),
             },
             {
                 'icon': 'circle-times',
                 'color': 'red',
                 'text': __("Limit Login Attempts", "really-simple-ssl"),
             },
+            {
+                'icon': 'circle-times',
+                'color': 'red',
+                'text': __("Visitor Protection", "really-simple-ssl"),
+            },
         ] :
         [
             {
                 'icon': 'circle-times',
                 'color': 'red',
-                'text': __("Performant HTTPS redirection", "really-simple-ssl"),
+                'text': __("SSL Encryption", "really-simple-ssl"),
             },
             {
                 'icon': 'circle-times',
                 'color': 'red',
-                'text': __("Vulnerability Detection", "really-simple-ssl"),
+                'text': __("Vulnerability Management", "really-simple-ssl"),
             },
             {
                 'icon': 'circle-times',
                 'color': 'red',
                 'text': __("WordPress hardening", "really-simple-ssl"),
-            },
-            {
-                'icon': 'circle-times',
-                'color': 'red',
-                'text': __("Mixed Content Fixer", "really-simple-ssl"),
             },
         ];
     return (

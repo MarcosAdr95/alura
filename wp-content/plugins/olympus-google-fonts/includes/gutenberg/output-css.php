@@ -11,7 +11,7 @@
  * Enqueue the Google Fonts URL.
  */
 function ogf_gutenberg_enqueue_fonts() {
-	$fonts = new OGF_Fonts();
+	$fonts = OGF_Fonts::get_instance();
 
 	if ( $fonts->has_google_fonts() ) {
 		$url = $fonts->build_url();
@@ -21,14 +21,14 @@ function ogf_gutenberg_enqueue_fonts() {
 add_action( 'enqueue_block_editor_assets', 'ogf_gutenberg_enqueue_fonts' );
 
 /**
- * Output the font CSS to wp_head.
+ * Output the font CSS to admin_head.
  */
 function ogf_gutenberg_output_css() {
 	// Only load on Gutenberg-enabled pages.
 	global $current_screen;
 	$current_screen = get_current_screen();
-	if ( ! method_exists( $current_screen, 'is_block_editor' ) || ! $current_screen->is_block_editor() ) {
-			return;
+	if ( ! $current_screen || ! method_exists( $current_screen, 'is_block_editor' ) || ! $current_screen->is_block_editor() ) {
+		return;
 	}
 	?>
 		<!-- Fonts Plugin Gutenberg CSS - https://fontsplugin.com/ -->

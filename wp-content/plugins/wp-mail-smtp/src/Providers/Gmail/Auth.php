@@ -10,6 +10,7 @@ use WPMailSMTP\Admin\SetupWizard;
 use WPMailSMTP\ConnectionInterface;
 use WPMailSMTP\Debug;
 use WPMailSMTP\Providers\AuthAbstract;
+use WPMailSMTP\Providers\Gmail\Logger;
 use WPMailSMTP\Vendor\Google_Client;
 use WPMailSMTP\Vendor\Google\Service\Gmail;
 
@@ -46,8 +47,11 @@ class Auth extends AuthAbstract {
 
 		$this->options = $this->connection_options->get_group( $this->mailer_slug );
 
-		if ( $this->is_clients_saved() ) {
+		if ( wp_mail_smtp()->is_pro() && ! empty( $this->options['one_click_setup_enabled'] ) ) {
+			return;
+		}
 
+		if ( $this->is_clients_saved() ) {
 			$this->include_vendor_lib();
 
 			$this->client = $this->get_client();
@@ -118,6 +122,9 @@ class Auth extends AuthAbstract {
 		// We request only the sending capability, as it's what we only need to do.
 		$client->setScopes( array( Gmail::MAIL_GOOGLE_COM ) );
 		$client->setRedirectUri( self::get_oauth_redirect_url() );
+
+		// Set our custom logger to replace Monolog dependency.
+		$client->setLogger( new Logger() );
 
 		if ( self::use_self_oauth_redirect_url() ) {
 			$client->setState( self::get_state_param( $this->connection ) );
