@@ -136,12 +136,15 @@ switch ( $astra_header_component_slug ) {
 		?>
 		<aside
 		<?php
-		echo astra_attr(
-			'header-widget-area-inner',
-			array(
-				'class'        => 'header-widget-area widget-area site-header-focus-item',
-				'data-section' => 'sidebar-widgets-header-widget-1',
-				'aria-label'   => 'Header Widget 1',
+		echo wp_kses_post(
+			astra_attr(
+				'header-widget-area-inner',
+				array(
+					'class'        => 'header-widget-area widget-area site-header-focus-item',
+					'data-section' => 'sidebar-widgets-header-widget-1',
+					'aria-label'   => 'Header Widget 1',
+					'role'         => 'region',
+				)
 			)
 		);
 		?>
@@ -163,12 +166,15 @@ switch ( $astra_header_component_slug ) {
 		?>
 		<aside
 		<?php
-		echo astra_attr(
-			'header-widget-area-inner',
-			array(
-				'class'        => 'header-widget-area widget-area site-header-focus-item',
-				'data-section' => 'sidebar-widgets-header-widget-2',
-				'aria-label'   => 'Header Widget 2',
+		echo wp_kses_post(
+			astra_attr(
+				'header-widget-area-inner',
+				array(
+					'class'        => 'header-widget-area widget-area site-header-focus-item',
+					'data-section' => 'sidebar-widgets-header-widget-2',
+					'aria-label'   => 'Header Widget 2',
+					'role'         => 'region',
+				)
 			)
 		);
 		?>

@@ -2,9 +2,7 @@
 /**
  * Account Header Configuration.
  *
- * @author      Astra
  * @package     Astra
- * @copyright   Copyright (c) 2023, Astra
  * @link        https://wpastra.com/
  * @since       4.5.2
  */
@@ -125,6 +123,7 @@ function astra_header_account_configuration() {
 			'input_attrs' => array(
 				'class' => 'ast-control-reduce-top-space',
 			),
+			'divider'     => array( 'ast_class' => 'ast-section-spacing' ),
 		),
 
 		/**
@@ -150,9 +149,8 @@ function astra_header_account_configuration() {
 			),
 			'responsive' => false,
 			'renderAs'   => 'text',
-			'divider'    => array( 'ast_class' => 'ast-bottom-dotted-divider ast-section-spacing' ),
+			'divider'    => array( 'ast_class' => 'ast-bottom-divider' ),
 		),
-
 
 		/**
 		 * Option: Show Text with
@@ -180,7 +178,7 @@ function astra_header_account_configuration() {
 			),
 			'responsive'  => false,
 			'renderAs'    => 'text',
-			'divider'     => array( 'ast_class' => 'ast-bottom-dotted-divider ast-section-spacing' ),
+			'divider'     => array( 'ast_class' => 'ast-bottom-divider ast-section-spacing' ),
 			'context'     => array(
 				array(
 					'setting'  => ASTRA_THEME_SETTINGS . '[header-account-login-style]',
@@ -191,10 +189,9 @@ function astra_header_account_configuration() {
 			),
 		),
 
-
 		/**
-		* Option: Logged Out Text
-		*/
+		 * Option: Logged Out Text
+		 */
 		array(
 			'name'      => ASTRA_THEME_SETTINGS . '[header-account-logged-in-text]',
 			'default'   => astra_get_option( 'header-account-logged-in-text' ),
@@ -218,10 +215,9 @@ function astra_header_account_configuration() {
 			),
 		),
 
-
 		/**
-		* Option: Account Log In Link
-		*/
+		 * Option: Account Log In Link
+		 */
 		array(
 			'name'              => ASTRA_THEME_SETTINGS . '[header-account-login-link]',
 			'default'           => astra_get_option( 'header-account-login-link' ),
@@ -251,7 +247,7 @@ function astra_header_account_configuration() {
 			'title'    => __( 'Logged Out View', 'astra' ),
 			'priority' => 200,
 			'settings' => array(),
-			'divider'  => array( 'ast_class' => 'ast-section-spacing' ),
+			'divider'  => array( 'ast_class' => 'ast-top-section-divider' ),
 		),
 
 		/**
@@ -277,9 +273,7 @@ function astra_header_account_configuration() {
 			),
 			'responsive' => false,
 			'renderAs'   => 'text',
-			'divider'    => array( 'ast_class' => 'ast-section-spacing' ),
 		),
-
 
 		/**
 		 * Option: Show Text with
@@ -306,7 +300,7 @@ function astra_header_account_configuration() {
 			),
 			'responsive'  => false,
 			'renderAs'    => 'text',
-			'divider'     => array( 'ast_class' => 'ast-top-dotted-divider ast-section-spacing' ),
+			'divider'     => array( 'ast_class' => 'ast-top-divider ast-section-spacing' ),
 			'context'     => array(
 				array(
 					'setting'  => ASTRA_THEME_SETTINGS . '[header-account-logout-style]',
@@ -316,7 +310,6 @@ function astra_header_account_configuration() {
 				Astra_Builder_Helper::$general_tab_config,
 			),
 		),
-
 
 		// Option: Logged out options preview.
 		array(
@@ -340,12 +333,12 @@ function astra_header_account_configuration() {
 				'selector'        => '.ast-header-account',
 				'render_callback' => array( 'Astra_Builder_UI_Controller', 'render_account' ),
 			),
-			'divider'   => array( 'ast_class' => 'ast-top-dotted-divider' ),
+			'divider'   => array( 'ast_class' => 'ast-top-divider' ),
 		),
 
 		/**
-		* Option: Logged Out Text
-		*/
+		 * Option: Logged Out Text
+		 */
 		array(
 			'name'      => ASTRA_THEME_SETTINGS . '[header-account-logged-out-text]',
 			'default'   => astra_get_option( 'header-account-logged-out-text' ),
@@ -370,8 +363,8 @@ function astra_header_account_configuration() {
 		),
 
 		/**
-		* Option: Account Log Out Link
-		*/
+		 * Option: Account Log Out Link
+		 */
 		array(
 			'name'              => ASTRA_THEME_SETTINGS . '[header-account-logout-link]',
 			'default'           => astra_get_option( 'header-account-logout-link' ),
@@ -382,7 +375,7 @@ function astra_header_account_configuration() {
 			'title'             => __( 'Login URL', 'astra' ),
 			'priority'          => 205,
 			'transport'         => 'postMessage',
-			'divider'           => array( 'ast_class' => 'ast-top-dotted-divider' ),
+			'divider'           => array( 'ast_class' => 'ast-top-divider' ),
 			'context'           => array(
 				array(
 					'setting'  => ASTRA_THEME_SETTINGS . '[header-account-logout-style]',
@@ -405,7 +398,7 @@ function astra_header_account_configuration() {
 			'default'           => astra_get_option( 'header-account-image-width' ),
 			'title'             => __( 'Avatar Width', 'astra' ),
 			'type'              => 'control',
-			'divider'           => defined( 'ASTRA_EXT_VER' ) ? array( 'ast_class' => 'ast-bottom-spacing' ) : array( 'ast_class' => 'ast-bottom-dotted-divider' ),
+			'divider'           => defined( 'ASTRA_EXT_VER' ) ? array( 'ast_class' => 'ast-bottom-spacing' ) : array( 'ast_class' => 'ast-bottom-divider' ),
 			'control'           => 'ast-responsive-slider',
 			'sanitize_callback' => array( 'Astra_Customizer_Sanitizes', 'sanitize_responsive_slider' ),
 			'input_attrs'       => array(
@@ -457,7 +450,7 @@ function astra_header_account_configuration() {
 			'type'              => 'control',
 			'suffix'            => 'px',
 			'control'           => 'ast-responsive-slider',
-			'divider'           => array( 'ast_class' => 'ast-bottom-dotted-divider' ),
+			'divider'           => array( 'ast_class' => 'ast-bottom-divider' ),
 			'sanitize_callback' => array( 'Astra_Customizer_Sanitizes', 'sanitize_responsive_slider' ),
 			'input_attrs'       => array(
 				'min'  => 0,
@@ -479,7 +472,7 @@ function astra_header_account_configuration() {
 					array(
 						'setting'  => ASTRA_THEME_SETTINGS . '[header-account-logout-style]',
 						'operator' => '==',
-						'value'    => 'icon', 
+						'value'    => 'icon',
 					),
 				),
 			),
@@ -496,7 +489,7 @@ function astra_header_account_configuration() {
 			'priority'          => 5,
 			'transport'         => 'postMessage',
 			'control'           => 'ast-color',
-			'divider'           => defined( 'ASTRA_EXT_VER' ) ? array( 'ast_class' => 'ast-bottom-spacing' ) : array( 'ast_class' => 'ast-bottom-dotted-divider' ),
+			'divider'           => array( 'ast_class' => defined( 'ASTRA_EXT_VER' ) ? '' : 'ast-bottom-divider' ),
 			'sanitize_callback' => array( 'Astra_Customizer_Sanitizes', 'sanitize_alpha_color' ),
 			'title'             => __( 'Icon Color', 'astra' ),
 			'context'           => array(
@@ -547,11 +540,12 @@ function astra_header_account_configuration() {
 					),
 				),
 			),
+			'divider'  => array( 'ast_class' => 'ast-top-section-divider' ),
 		),
 
 		/**
-		* Option: account Color.
-		*/
+		 * Option: account Color.
+		 */
 		array(
 			'name'              => ASTRA_THEME_SETTINGS . '[header-account-type-text-color]',
 			'default'           => astra_get_option( 'header-account-type-text-color' ),
@@ -560,7 +554,7 @@ function astra_header_account_configuration() {
 			'priority'          => 18,
 			'transport'         => 'postMessage',
 			'control'           => 'ast-color',
-			'divider'           => array( 'ast_class' => 'ast-bottom-spacing ast-section-spacing' ),
+			'divider'           => array( 'ast_class' => 'ast-top-section-spacing' ),
 			'sanitize_callback' => array( 'Astra_Customizer_Sanitizes', 'sanitize_alpha_color' ),
 			'title'             => __( 'Profile Text Color', 'astra' ),
 			'context'           => array(
@@ -593,6 +587,7 @@ function astra_header_account_configuration() {
 			'priority' => 510,
 			'settings' => array(),
 			'context'  => Astra_Builder_Helper::$design_tab,
+			'divider'  => array( 'ast_class' => 'ast-top-section-divider' ),
 		),
 
 		/**
@@ -617,7 +612,7 @@ function astra_header_account_configuration() {
 				'left'   => __( 'Left', 'astra' ),
 			),
 			'context'           => Astra_Builder_Helper::$design_tab,
-			'divider'           => array( 'ast_class' => 'ast-section-spacing' ),
+			'divider'           => array( 'ast_class' => 'ast-top-section-spacing' ),
 		),
 	);
 
@@ -641,7 +636,7 @@ function astra_header_account_configuration() {
 					),
 				),
 			),
-			array( 'ast_class' => 'ast-section-spacing' )
+			array( 'ast_class' => 'ast-top-section-spacing' )
 		)
 	);
 
@@ -655,6 +650,5 @@ function astra_header_account_configuration() {
 }
 
 if ( Astra_Builder_Customizer::astra_collect_customizer_builder_data() ) {
-	astra_header_account_configuration();
+	add_action( 'init', 'astra_header_account_configuration' );
 }
-

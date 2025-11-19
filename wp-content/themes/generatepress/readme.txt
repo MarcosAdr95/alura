@@ -4,9 +4,10 @@ Donate link: https://generatepress.com/ongoing-development/
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Tags: two-columns, three-columns, one-column, right-sidebar, left-sidebar, footer-widgets, blog, e-commerce, flexible-header, full-width-template, buddypress, custom-header, custom-background, custom-menu, custom-colors, sticky-post, threaded-comments, translation-ready, rtl-language-support, featured-images, theme-options
-Requires at least: 7.4
-Tested up to: 6.4
-Stable tag: 3.4.0
+Requires at least: 6.5
+Requires PHP: 7.4
+Tested up to: 6.8
+Stable tag: 3.6.0
 
 GeneratePress is a lightweight WordPress theme built with a focus on speed and usability.
 
@@ -98,6 +99,31 @@ By Jed Watson
 MIT License: https://github.com/JedWatson/react-select/blob/master/LICENSE
 
 == Changelog ==
+
+= 3.6.0 =
+* Fix: Inability to add more than one font in the Font Manager
+* Tweak: Improve accessibility of navigation search modal
+* Tweak: Better support for full iframed editor
+* Tweak: Use passive event listening for a11y script
+* Tweak: Use `wp_print_inline_script_tag` for a11y script
+* Tweak: Use `wp_add_inline_script()` for inline script variables
+
+= 3.5.1 =
+* Tweak: Revert addition of appearance-tools theme support
+* Fix: Dropdown click conflict with off-canvas panel
+
+= 3.5.0 =
+* Feature: Add support for more core block options
+* Feature: Add support for GPP Font Library in the Customizer
+* Fix: Underlined buttons in the editor
+* Tweak: Add minimal header/footer templates for future GPP site editor
+* Tweak: Allow bottom margin value in custom typography elements
+* Accessibility: Add role to back to top button
+* Accessibility: Use h2 for comments title
+* Accessibility: Add aria-controls to menu dropdowns
+* Accessibility: Add aria-label to menu dropdown toggles
+* Accessibility: Add proper roles to menu dropdown toggles
+* Accessibility: Allow spacebar to open menu dropdowns
 
 = 3.4.0 =
 
