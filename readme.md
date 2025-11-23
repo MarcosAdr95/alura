@@ -34,7 +34,7 @@ Construído com base na plataforma Wordpress + Guttenberg e conteúdos do parcei
 - Inicie seu apache + mysql
 - Se o apache estiver rodando acesse:
   - Site: `https://www.cookinup.com.br`
-  - Admin wp: `https://www.cookinup.com.br/wp-admin`
+  - Admin wp: `https://www.cookinup.com.br/cms`
   - mysql: `http://localhost/phpmyadmin/index.php`
 
 ### Ambiente Docker
@@ -43,7 +43,7 @@ Construído com base na plataforma Wordpress + Guttenberg e conteúdos do parcei
 - Para subir versões do docker com a base de dados/arquivos atualizados apague as pastas "letencrypt", "volumes-wp" e "volumes-mysql". Após rode o comando "compose up"
 - Quando o docker estiver rodando acesse:
   - Site: `https://www.cookinup.com.br`
-  - Admin wp: `https://www.cookinup.com.br/wp-admin`
+  - Admin wp: `https://www.cookinup.com.br/cms`
   - mysql: `https://pma.cookinup.com.br/index.php`
 
 **Obs: para modificações feitas no admin do site devemos atualizar a imagem cookin_up.sql ou ao reescrever os arquivos podemos perder as modificações**
