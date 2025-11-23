@@ -32,12 +32,19 @@ Construído com base na plataforma Wordpress + Guttenberg e conteúdos do parcei
     - Como sugestão de user voce pode seguir a config do `wp-config.php`
 - No arquivo `wp-config.php` localizado na raiz do repositório altera as credenciais de acesso ao mysql de acordo com sua instalação local/produção (caso tenha personalizado)
 - Inicie seu apache + mysql
-- Acessar a url `https://www.cookinup.com.br` e `https://www.cookinup.com.br/wp-admin` no navegador
+- Se o apache estiver rodando acesse:
+  - Site: `https://www.cookinup.com.br`
+  - Admin wp: `https://www.cookinup.com.br/wp-admin`
+  - mysql: `http://localhost/phpmyadmin/index.php`
 
 ### Ambiente Docker
 
-- Para subir o ambiente execute:`docker compose up --build`
-- Para subir versões do docker com a base de dados/arquivos atualizados apague as pastas "letencrypt", "volumes-wp" e "columes-mysql". Após rode o comande "compose up"
+- Para subir o ambiente execute:`docker compose up --build` (use o --build para atualizar os arquivos do ambiente)
+- Para subir versões do docker com a base de dados/arquivos atualizados apague as pastas "letencrypt", "volumes-wp" e "volumes-mysql". Após rode o comando "compose up"
+- Quando o docker estiver rodando acesse:
+  - Site: `https://www.cookinup.com.br`
+  - Admin wp: `https://www.cookinup.com.br/wp-admin`
+  - mysql: `https://pma.cookinup.com.br/index.php`
 
 **Obs: para modificações feitas no admin do site devemos atualizar a imagem cookin_up.sql ou ao reescrever os arquivos podemos perder as modificações**
 
@@ -45,6 +52,12 @@ Construído com base na plataforma Wordpress + Guttenberg e conteúdos do parcei
 
 ### Acessos:
 
-**Perfil:** Administrador
-**Login:** Marcos
-**Senha:** 1234
+- **Wordpress:**
+  - **Perfil:** Administrador
+  - **Login:** administrator_team
+  - **Senha:** administrator_team
+    <br>
+- **Usuário do mysql:**
+  - **Banco:** cookin_up
+  - **Login:** cookinup_user
+  - **Senha:** 1234
