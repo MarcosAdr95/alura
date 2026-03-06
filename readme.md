@@ -61,3 +61,11 @@ Construído com base na plataforma Wordpress + Guttenberg e conteúdos do parcei
   - **Banco:** cookin_up
   - **Login:** cookinup_user
   - **Senha:** 1234
+
+---
+
+### Plugins:
+
+O site faz uso de alguns plugins que precisam chaves de API:
+
+- **Akismet Antispam**: necessário criar uma chave de acesso personalizada 
