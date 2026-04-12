@@ -68,4 +68,4 @@ Construído com base na plataforma Wordpress + Guttenberg e conteúdos do parcei
 
 O site faz uso de alguns plugins que precisam chaves de API:
 
-- **Akismet Antispam**: necessário criar uma chave de acesso personalizada 
+- **Akismet Antispam**: necessário criar uma chave de acesso personalizada
