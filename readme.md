@@ -70,3 +70,4 @@ O site faz uso de alguns plugins que precisam chaves de API:
 
 - **Akismet Antispam**: necessário criar uma chave de acesso personalizada
 - **WP Mail STMP**: necessário colocar chaves de acesso (local usamos MailHog)
+- **UpdraftPlus**: configurar conta de backuo
